@@ -15,7 +15,7 @@
  */
 import { spawn, execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
