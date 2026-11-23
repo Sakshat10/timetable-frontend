@@ -5,8 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { yearsApi } from "@/lib/api/endpoints";
 import type { AcademicYear } from "@/lib/api/types";
 import { qk } from "@/lib/query/keys";
+import { YEAR_PREFERENCE_COOKIE } from "./year-defaults";
 
-export const YEAR_PREFERENCE_COOKIE = "tt_year";
+export { pickDefaultYear, YEAR_PREFERENCE_COOKIE } from "./year-defaults";
+
 
 export interface YearCapabilities {
   /** Structure, curriculum, grade eligibility, assignments and schedule writes (backend: DRAFT only). */
@@ -78,13 +80,4 @@ export function useYear(): YearContextValue {
 /** For components rendered both inside and outside a year (e.g. the sidebar). */
 export function useOptionalYear(): YearContextValue | null {
   return useContext(YearContext);
-}
-
-/** Picks the default year: ACTIVE, else the newest DRAFT, else the newest. */
-export function pickDefaultYear(years: readonly AcademicYear[], preferredId?: string | null): AcademicYear | null {
-  if (years.length === 0) return null;
-  const preferred = preferredId ? years.find((y) => y.id === preferredId) : undefined;
-  if (preferred) return preferred;
-  const byStartDesc = [...years].sort((a, b) => (a.startDate < b.startDate ? 1 : -1));
-  return byStartDesc.find((y) => y.status === "ACTIVE") ?? byStartDesc.find((y) => y.status === "DRAFT") ?? byStartDesc[0]!;
 }

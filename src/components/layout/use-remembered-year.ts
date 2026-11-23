@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { YEAR_PREFERENCE_COOKIE } from "@/features/academic-years/year-context";
+import { YEAR_PREFERENCE_COOKIE } from "@/features/academic-years/year-defaults";
 
 function read(): string | null {
   try {
