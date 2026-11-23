@@ -1,0 +1,77 @@
+# Request to the backend owner
+
+- **From:** frontend rebuild (Timetable Maker 2.0)
+- **Backend inspected:** `timetable-backend` at `64b392390cd45af97246478a5235d754fa3b59f6`
+- **Status:** for discussion. The frontend team will not change the backend.
+
+The frontend will reach the API through its own origin: the browser calls `/api/*` on the Next.js host, and Next.js forwards the request to Fastify. Nothing in this request changes business rules, the database schema, migrations or the solver.
+
+## Critical
+
+### 1. Configure `TRUST_PROXY` for the real proxy chain (deployment configuration, no code change)
+
+**Problem.** The login, admin-registration and school-creation rate limiters key on `request.ip` (`src/middleware/rate-limit.middleware.ts:48-86`). With the default `TRUST_PROXY=false`, `request.ip` is the socket address (`src/config/security.ts:43-94`).
+
+Behind the frontend's forwarding layer, that socket address is the Next.js server, so every user shares one allowance. Five failed logins by anyone, within 15 minutes, would block login for the whole deployment.
+
+**Ask.** Set `TRUST_PROXY` to the exact trusted chain in front of Fastify, either as a hop count or as proxy addresses/CIDRs. Never use `true`, `*` or a `/0` range; the backend already refuses those.
+
+**Do not pick the value yet.** The value depends on whether the Next.js forwarding layer appends the client address to `X-Forwarded-For`, and on how many proxies (load balancer, CDN) sit in front of Next.js. The frontend team will measure this in Phase 1 (`AUTH-PROXY-TEST-PLAN.md`, tests T5.x) and send:
+- the measured chain;
+- the recommended value;
+- proof that a client-supplied `X-Forwarded-For` cannot select another client's bucket.
+
+Related: the limiter is in memory and per process, so multiple backend instances multiply the limits. This is already documented in `.env.example`, and no change is requested.
+
+### 2. Stop raw database errors leaking from session validation (code change)
+
+**Problem.** `authMiddleware` (`src/middleware/auth.middleware.ts:26`) awaits `adminService.validateSession()` without `try/catch`. When that throws, for example because the database is unreachable, the error goes to Fastify's default error handler (the app registers no `setErrorHandler`). The client then receives the raw Prisma message, which includes a source file path and a code excerpt.
+
+**Reproduced** on 2026-11-23, in memory, with `NODE_ENV=production`, a strong `COOKIE_SECRET` and an unreachable `DATABASE_URL`:
+
+| Request | Result |
+|---|---|
+| `POST /api/admin/login` | `500 {"success":false,"message":"An unexpected error occurred"}`: safe, because the controller's `handleError` catches it |
+| `GET /api/admin/me` with a `session_token` cookie | `500 {"statusCode":500,"code":"P1001","error":"Internal Server Error","message":"\nInvalid \`this.db.adminSession.findUnique()\` invocation in\n/…/src/modules/admin/admin.service.ts:132:48\n\n 129 async validateSession(…"}` |
+| `GET /api/teachers` with a cookie | same leak |
+| `GET /api/teachers` without a cookie | 401, so no leak |
+
+**Scope.** This is broader than the login path. It affects **every authenticated route** whenever a session cookie is present and session lookup throws. The login endpoint itself is not affected.
+
+**Ask.** Make an auth-middleware failure produce the standard generic 500 envelope (`{ success:false, message:"An unexpected error occurred" }`) and log the details server-side only.
+- Option A: wrap the middleware in `try/catch` and call `handleError`.
+- Option B: add an application-level `setErrorHandler` that never echoes the message of a 5xx error. This also covers any future unhandled path.
+
+**Frontend mitigation, regardless of the fix:** the frontend never displays the body of a 5xx response.
+
+## Deferred (no action needed now)
+
+### 3. Login by school code
+
+The frontend will use the school UUID for login at first. It shows the ID after sign-up and remembers it per device. We may later ask for a public lookup or a login that accepts the school `code`, which is unique. The rate-limiting and enumeration implications would need discussing at that point. **Not requested now.**
+
+### 4. Additional response headers: none needed
+
+We examined every response header the frontend could need:
+
+| Header | Sent by | Frontend workflow | Needed? |
+|---|---|---|---|
+| `Location` | `POST /timetable-generations` (202); `POST /timetable-versions/:id/clone` (201) | Find the new run or version | **No.** The body already carries the id (`data.generationRunId`; the new version's `data.id`). |
+| `Retry-After` | 503 `BUSY` (versions, generation) and 503 queue-full (generation) | Back off before retrying | **No.** Responses are same-origin through the proxy, so CORS `exposedHeaders` does not apply and the header is readable. Phase 1 test T6.3 confirms this. |
+| `Set-Cookie` | login, logout | Session | Passed through by the proxy (T2.x), and no CORS exposure is involved. |
+| Request header `Idempotency-Key` | `POST /teachers/bulk` | Bulk teacher creation | Same-origin, so no CORS preflight applies. |
+
+**Conclusion:** no CORS or header change is requested.
+
+The only case for `exposedHeaders: ['Location','Retry-After']` is a future cross-origin client. If Phase 1 tests show the proxy strips `Retry-After`, we will fix that on the frontend side, not here.
+
+## Documentation drift (low priority, for whenever docs are next touched)
+
+These were found during the audit (`PHASE-0-AUDIT.md` §9):
+- The locks route says generation ignores locks; it does not, via `options.sourceVersionId`.
+- The substitution route text says the second candidate tier is `OTHER_ELIGIBLE` and that candidates must be qualified; the code uses `OTHER_AVAILABLE` and requires no subject link.
+- The substitution README lists `ONLY_LAST_RESORT_CANDIDATES`, which does not exist in code.
+- The docs say absence cancel and PATCH are blocked by any ASSIGNED cover; in code, only MANUAL ones block.
+- The event route description omits `COVER_OBSOLETED`.
+- The school README omits `setupToken` and `setupTokenExpiresAt`.
+- "One ACTIVE academic year per school" is described in the academic-year README but not enforced (`academic-year.service.ts:198-205`). The frontend will prevent a second activation in the UI, but the backend does not.
