@@ -11,9 +11,11 @@
 | 3 | Frontend architecture proposal | [FRONTEND-ARCHITECTURE.md](FRONTEND-ARCHITECTURE.md) | Ready for review |
 | 4 | Feature-to-API integration matrix | [FEATURE-API-MATRIX.md](FEATURE-API-MATRIX.md) | Ready for review |
 | 5 | Authentication and proxy test plan | [AUTH-PROXY-TEST-PLAN.md](AUTH-PROXY-TEST-PLAN.md) | Ready for review |
-| 6 | Unsupported capabilities excluded | [CAPABILITY-BOUNDARIES.md](CAPABILITY-BOUNDARIES.md) | Ready for review (§2 lists 7 items to confirm) |
+| 6 | Unsupported capabilities excluded | [CAPABILITY-BOUNDARIES.md](CAPABILITY-BOUNDARIES.md) | Review outcome recorded in §2 |
+| – | Phase 1 auth/proxy results | [PHASE-1-AUTH-PROXY-RESULTS.md](PHASE-1-AUTH-PROXY-RESULTS.md) | Measured; forwarding decision recorded |
+| – | Implementation conventions | [IMPLEMENTATION-GUIDE.md](IMPLEMENTATION-GUIDE.md) | In use |
 
-**Implementation has not started.** Phase 1 begins only after these are reviewed.
+Implementation followed these documents; see the addendum at the top of FRONTEND-ARCHITECTURE.md for deviations.
 
 ## Precedence
 

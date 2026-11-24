@@ -1,5 +1,14 @@
 # Timetable Maker 2.0: frontend architecture proposal
 
+> **Implementation addendum (2026-11-24).** The application was built from this proposal. These are the material differences, and they take precedence over the text below:
+> - **Source layout.** Code lives under `src/` (`src/app`, `src/features`, `src/components`, `src/lib`), and the year-scoped routes are **`/years/[yearId]/…`** rather than `/y/[yearId]`. The timetable pages are `/years/[yearId]/timetables` and `/timetables/[versionId]`. The guided setup is `/years/[yearId]/setup`, with `/setup/start` for a school with no academic year.
+> - **Rendering model.** Next.js 16.4 ships with Cache Components available. This app does **not** enable `cacheComponents`/`partialPrefetching`, because it is fully authenticated and client-data driven. The request-time model applies, and the server layouts read the session cookie directly.
+> - **Forwarding layer.** Option A (`rewrites()`) was chosen on measured evidence, together with a deployment requirement: a trusted front proxy writes `X-Forwarded-For`, and the backend sets `TRUST_PROXY=1`. See `PHASE-1-AUTH-PROXY-RESULTS.md`. Option B was rejected because a route handler cannot see the socket address when a client sends `X-Forwarded-For`.
+> - **Types.** Response types are generated with `openapi-typescript --properties-required-by-default`, because none of the 671 Fastify response objects declare `required`. Conditional fields are re-marked optional in `src/lib/api/types.ts`. Request types are transcribed from the backend Zod schemas.
+> - **Tables.** TanStack Table is v9 (`useTable`, `tableFeatures`), wrapped once in `src/components/data-table/data-table.tsx`.
+> - **Year preference.** The last-used year is remembered in a non-sensitive `tt_year` cookie, so the server-side `/` redirect can honour it. Year data itself is never cached in the browser.
+> - **Forms.** Field ids come from `useId()`, never the field name, because several forms can share a page.
+
 - **Status:** proposal for review (Phase 0 gate, Decision 5.3). No code exists yet.
 - **Inputs:**
   - `PHASE-0-AUDIT.md` (backend `64b392390cd45af97246478a5235d754fa3b59f6`)

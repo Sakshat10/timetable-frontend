@@ -37,6 +37,13 @@
 
 These use real backend capabilities and are **in scope**, but they sit close to an excluded item. Each has a recommendation; nothing here is built until it is confirmed.
 
+**Review outcome (implementation brief, 2026-11-24):**
+- **P1 approved**, labelled "Substitution updates" / "Cover history".
+- **P5 approved**, labelled exactly "Copy to new draft"; the archived original is unchanged.
+- **P6 excluded:** no delete-published-version control.
+- **P2–P4 approved:** they are backend-provided figures shown only in their own context, which is what the brief's "individual and supported workload information" means. No workload page or aggregate.
+- **P7 approved** as part of publishing.
+
 | # | Feature | Backend basis | Near | Recommendation |
 |---|---|---|---|---|
 | P1 | Substitution history: per-cover `history[]` and the substitution events feed (bell) | `GET /substitutions/:id`, `GET /substitution-events` (§6.5) | X10 | **Include**, labelled strictly as "Substitution updates" and "Cover history", inside Daily operations. It is never called an activity or audit log, and it never implies coverage of anything except substitutions. |

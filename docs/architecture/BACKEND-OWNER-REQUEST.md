@@ -16,10 +16,18 @@ Behind the frontend's forwarding layer, that socket address is the Next.js serve
 
 **Ask.** Set `TRUST_PROXY` to the exact trusted chain in front of Fastify, either as a hop count or as proxy addresses/CIDRs. Never use `true`, `*` or a `/0` range; the backend already refuses those.
 
-**Do not pick the value yet.** The value depends on whether the Next.js forwarding layer appends the client address to `X-Forwarded-For`, and on how many proxies (load balancer, CDN) sit in front of Next.js. The frontend team will measure this in Phase 1 (`AUTH-PROXY-TEST-PLAN.md`, tests T5.x) and send:
-- the measured chain;
-- the recommended value;
-- proof that a client-supplied `X-Forwarded-For` cannot select another client's bucket.
+**Measured (Phase 1, T5; details and tables in `PHASE-1-AUTH-PROXY-RESULTS.md`):**
+- Next.js `rewrites()` forwards a client-supplied `X-Forwarded-For` **unchanged**, and adds none when the client sent none.
+- Next.js exposed directly: every `TRUST_PROXY` value fails.
+  - `false` puts all users in one login bucket.
+  - `1` and `loopback` let any client choose its address: the spoof was accepted and the 429 was escaped.
+- Behind a trusted front proxy that writes `X-Forwarded-For` (overwrite or append): **`TRUST_PROXY=1`** gives every client its own bucket, and spoofed values are ignored.
+
+**Recommendation:**
+1. Deploy as client → trusted reverse proxy or load balancer (writes `X-Forwarded-For`) → Next.js → Fastify.
+2. Set **`TRUST_PROXY=1`** for that chain.
+3. Make Fastify reachable **only** from Next.js (private network or firewall). With `TRUST_PROXY=1`, a direct caller could set its own address (observed in T5.1). Alternatively, list the Next.js host addresses or CIDRs instead of a hop count.
+4. If a CDN sits in front of the load balancer, re-measure on staging (T5.7) before choosing the value. The frontend team runs `npm run e2e:ip`, adapted to the staging URLs.
 
 Related: the limiter is in memory and per process, so multiple backend instances multiply the limits. This is already documented in `.env.example`, and no change is requested.
 
