@@ -38,7 +38,7 @@ function NoticeRow({ tone, children }: { tone: "info" | "success" | "warning" | 
           "mt-0.5 size-4 shrink-0",
           tone === "success" && "text-success",
           tone === "info" && "text-info",
-          tone === "warning" && "text-warning-foreground dark:text-warning",
+          tone === "warning" && "text-warning-foreground",
           tone === "danger" && "text-destructive",
         )}
         aria-hidden

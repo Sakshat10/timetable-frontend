@@ -72,7 +72,7 @@ export function FieldMessage({ id, children }: { id?: string; children: ReactNod
 export function DraftsNotice({ count, what }: { count: number; what: string }) {
   if (count === 0) return null;
   return (
-    <div role="status" className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning-muted px-3.5 py-2.5 text-sm text-warning-foreground dark:text-warning">
+    <div role="status" className="flex items-start gap-2.5 rounded-xl border border-warning/30 bg-warning-muted px-3.5 py-2.5 text-sm text-warning-foreground">
       <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
       <p>
         This year has {plural(count, "timetable draft")}. Changing {what} makes {count === 1 ? "it" : "them"} out of date:{" "}
@@ -85,8 +85,8 @@ export function DraftsNotice({ count, what }: { count: number; what: string }) {
 /** A neutral explanatory note. */
 export function InfoNote({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-start gap-2.5 rounded-lg border bg-surface px-3.5 py-2.5 text-sm text-muted-foreground", className)}>
-      <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+    <div className={cn("flex items-start gap-3 rounded-xl border border-primary/15 bg-primary-soft/70 px-4 py-3 text-sm leading-6 text-secondary-foreground", className)}>
+      <Info className="mt-1 size-4 shrink-0 text-primary" aria-hidden />
       <div className="space-y-1">{children}</div>
     </div>
   );

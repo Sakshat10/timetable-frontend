@@ -136,7 +136,7 @@ export function SubjectEligibilitySection({ teacher }: { teacher: Pick<Teacher, 
               }}
             />
           ) : null}
-          <div className="overflow-hidden rounded-lg border bg-surface">
+          <div className="overflow-hidden rounded-xl border bg-surface shadow-card">
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm">
                 <caption className="sr-only">Subjects and grade eligibility for {year.name}</caption>

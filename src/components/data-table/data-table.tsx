@@ -109,11 +109,11 @@ export function DataTable<T extends RowData>({
   const end = Math.min(total, (pagination.pageIndex + 1) * pagination.pageSize);
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-surface">
+    <div className="overflow-hidden rounded-xl border bg-surface shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full caption-bottom text-sm">
           <caption className="sr-only">{caption}</caption>
-          <thead className="bg-muted/50">
+          <thead className="bg-surface-subtle">
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id} className="border-b">
                 {group.headers.map((header) => {
@@ -126,7 +126,7 @@ export function DataTable<T extends RowData>({
                       scope="col"
                       aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : sortable ? "none" : undefined}
                       className={cn(
-                        "h-10 px-3 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground first:pl-4 last:pr-4",
+                        "h-11 px-3 text-left align-middle text-xs font-semibold whitespace-nowrap text-muted-foreground first:pl-5 last:pr-5",
                         column?.align === "right" && "text-right",
                         column?.align === "center" && "text-center",
                         column?.hideOnMobile && "hidden md:table-cell",
@@ -163,7 +163,7 @@ export function DataTable<T extends RowData>({
                 <tr
                   key={row.id}
                   onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                  className={cn("border-b transition-colors last:border-b-0 hover:bg-muted/40", onRowClick && "cursor-pointer", rowClassName?.(row.original))}
+                  className={cn("border-b transition-colors last:border-b-0 hover:bg-primary-soft/40", onRowClick && "cursor-pointer", rowClassName?.(row.original))}
                 >
                   {row.getAllCells().map((cell) => {
                     const column = meta.get(cell.column.id);
@@ -171,8 +171,8 @@ export function DataTable<T extends RowData>({
                       <td
                         key={cell.id}
                         className={cn(
-                          "px-3 align-middle first:pl-4 last:pr-4",
-                          dense ? "py-2" : "py-3",
+                          "px-3 align-middle first:pl-5 last:pr-5",
+                          dense ? "py-2.5" : "py-3.5",
                           column?.align === "right" && "text-right",
                           column?.align === "center" && "text-center",
                           column?.hideOnMobile && "hidden md:table-cell",

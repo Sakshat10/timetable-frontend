@@ -26,16 +26,16 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-dashed bg-surface text-center",
-        compact ? "gap-2 px-4 py-6" : "gap-3 px-6 py-12",
+        "flex flex-col items-center justify-center rounded-xl border border-dashed border-border-strong bg-surface text-center",
+        compact ? "gap-2 px-4 py-8" : "gap-3 px-6 py-14",
         className,
       )}
     >
-      <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden>
+      <div className="flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary" aria-hidden>
         {icon ?? <Inbox className="size-5" />}
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">{title}</p>
+        <p className="text-[15px] font-semibold text-foreground">{title}</p>
         {description ? <div className="mx-auto max-w-md text-sm text-muted-foreground">{description}</div> : null}
       </div>
       {action ? <div className="mt-1 flex flex-wrap justify-center gap-2">{action}</div> : null}
@@ -89,7 +89,7 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-lg border bg-surface text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-xl border bg-surface text-center shadow-card",
         compact ? "px-4 py-6" : "px-6 py-12",
         className,
       )}
@@ -113,8 +113,8 @@ export function ErrorState({
 /** Explains why a real capability is disabled in the current context (e.g. the year is not DRAFT). */
 export function ReadOnlyNotice({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-start gap-2.5 rounded-lg border bg-muted/60 px-3.5 py-2.5 text-sm text-muted-foreground", className)}>
-      <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />
+    <div className={cn("flex items-start gap-2.5 rounded-xl border bg-surface px-4 py-3 text-sm text-muted-foreground shadow-xs", className)}>
+      <Lock className="mt-0.5 size-4 shrink-0 text-foreground/70" aria-hidden />
       <div>{children}</div>
     </div>
   );
@@ -123,7 +123,7 @@ export function ReadOnlyNotice({ children, className }: { children: ReactNode; c
 /** A non-blocking notice shown when a background refresh failed but data is still displayed. */
 export function StaleDataNotice({ onRetry }: { onRetry?: () => void }) {
   return (
-    <div role="status" className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning-muted px-3 py-1.5 text-xs text-warning-foreground dark:text-warning">
+    <div role="status" className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning-muted px-3 py-1.5 text-xs text-warning-foreground">
       <AlertTriangle className="size-3.5" aria-hidden />
       Couldn’t refresh. Showing the last loaded information.
       {onRetry ? (
@@ -137,7 +137,7 @@ export function StaleDataNotice({ onRetry }: { onRetry?: () => void }) {
 
 export function TableSkeleton({ rows = 6, columns = 4 }: { rows?: number; columns?: number }) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-surface" aria-busy="true" aria-label="Loading">
+    <div className="overflow-hidden rounded-xl border bg-surface shadow-card" aria-busy="true" aria-label="Loading">
       <div className="flex gap-4 border-b px-4 py-3">
         {Array.from({ length: columns }, (_, i) => (
           <Skeleton key={i} className="h-3.5 flex-1" />
@@ -158,7 +158,7 @@ export function CardsSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true" aria-label="Loading">
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="space-y-3 rounded-lg border bg-surface p-4">
+        <div key={i} className="space-y-3 rounded-xl border bg-surface p-5 shadow-card">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="h-6 w-16" />
           <Skeleton className="h-3 w-32" />

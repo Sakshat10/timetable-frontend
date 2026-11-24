@@ -68,7 +68,7 @@ export function SetupGuidePage() {
       </Panel>
 
       <Section title="Steps">
-        <ol className="overflow-hidden rounded-lg border bg-surface">
+        <ol className="overflow-hidden rounded-xl border bg-surface shadow-card">
           {steps.map((step, index) => (
             <li key={step.id} className={cn("flex flex-col gap-3 border-b p-4 last:border-b-0 sm:flex-row sm:items-center", step.id === next?.id && "bg-accent/30")}>
               <div className="flex min-w-0 flex-1 items-start gap-3">

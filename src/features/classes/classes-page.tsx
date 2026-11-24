@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { GraduationCap, Layers, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { BookOpenCheck, GraduationCap, Info, Layers, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PageBody, PageHeader } from "@/components/shared/page-header";
@@ -16,6 +16,7 @@ import { isApiError } from "@/lib/api/errors";
 import type { CurriculumGrade, CurriculumGroup } from "@/lib/api/schemas";
 import { notifySuccess } from "@/lib/notify";
 import { plural } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useYear } from "@/features/academic-years/year-context";
 import { useCurriculumOverview, useDraftCount, useInvalidateSetup } from "@/features/curriculum/hooks";
 import { DraftsNotice, InfoNote } from "@/features/curriculum/shared-ui";
@@ -94,16 +95,7 @@ export function ClassesPage() {
       <PageHeader
         eyebrow={year.name}
         title="Classes"
-        description={
-          <>
-            Grades, streams and sections of {year.name}. Sections are the classes a timetable is made for.
-            {totals ? (
-              <span className="mt-1 block tabular">
-                {plural(totals.grades, "grade")} · {plural(totals.streams, "stream")} · {plural(totals.sections, "section")}
-              </span>
-            ) : null}
-          </>
-        }
+        description={<>Grades, streams and sections of {year.name}. Sections are the classes a timetable is made for.</>}
         actions={
           <>
             <Button variant="outline" onClick={() => setDialog({ kind: "bulk" })} disabled={!canEdit || !overview.data}>
@@ -115,6 +107,21 @@ export function ClassesPage() {
           </>
         }
       />
+
+      {totals ? (
+        <dl className="grid grid-cols-3 gap-3 sm:max-w-xl" aria-label="Class structure totals">
+          {[
+            { label: "Grades", value: totals.grades },
+            { label: "Streams", value: totals.streams },
+            { label: "Sections", value: totals.sections },
+          ].map((item) => (
+            <div key={item.label} className="rounded-xl border bg-surface px-4 py-3 shadow-xs">
+              <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+              <dd className="text-xl font-semibold text-foreground tabular">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
 
       {!canEdit && capabilities.setupLockedReason ? <ReadOnlyNotice>{capabilities.setupLockedReason}</ReadOnlyNotice> : null}
       {canEdit ? <DraftsNotice count={draftCount} what="classes" /> : null}
@@ -157,9 +164,11 @@ export function ClassesPage() {
         <>
           <Toolbar>
             <SearchInput value={query} onChange={setQuery} placeholder="Search grades, streams or sections" label="Search classes" />
-            <Link href={`${basePath}/curriculum`} className="text-sm font-medium text-primary hover:underline sm:ml-auto">
-              Set the curriculum
-            </Link>
+            <Button asChild variant="outline" className="sm:ml-auto">
+              <Link href={`${basePath}/curriculum`}>
+                <BookOpenCheck /> Set the curriculum
+              </Link>
+            </Button>
           </Toolbar>
           {visible.length === 0 ? (
             <NoResults query={query} onClear={() => setQuery("")} />
@@ -228,23 +237,32 @@ function GradeCard({ grade, canEdit, actions }: { grade: CurriculumGrade; canEdi
   const headingId = `grade-${grade.id}`;
   // Streamed grades: one block per stream (plus legacy unstreamed sections, if any). Others: the grade's sections.
   const groups = grade.curricula.filter((g) => g.streamId !== null || g.sectionCount > 0 || grade.streams.length === 0);
+  const streamed = grade.streams.length > 0;
 
   return (
-    <li className="rounded-lg border bg-surface" aria-labelledby={headingId}>
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b px-4 py-3">
-        <div className="min-w-0 space-y-1.5">
-          <h2 id={headingId} className="text-base font-semibold text-foreground">
-            {grade.name}
-          </h2>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <StatusBadge tone={badge.tone}>{badge.label}</StatusBadge>
-            <span className="text-xs text-muted-foreground tabular">
-              Order {grade.displayOrder} · {plural(grade.sectionCount, "section")}
-              {grade.streams.length > 0 ? ` · ${plural(grade.streams.length, "stream")}` : ""}
-            </span>
+    <li className="overflow-hidden rounded-xl border bg-surface shadow-card" aria-labelledby={headingId}>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <span
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-[15px] font-semibold text-accent-foreground tabular"
+            aria-hidden
+          >
+            {gradeInitials(grade.name)}
+          </span>
+          <div className="min-w-0 space-y-1">
+            <h2 id={headingId} className="truncate text-[17px] leading-6 font-semibold text-foreground">
+              {grade.name}
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <StatusBadge tone={badge.tone}>{badge.label}</StatusBadge>
+              <span className="text-xs text-muted-foreground tabular">
+                {plural(grade.sectionCount, "section")}
+                {streamed ? ` · ${plural(grade.streams.length, "stream")}` : ""} · Order {grade.displayOrder}
+              </span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <Button variant="outline" size="sm" onClick={() => actions.addSection(grade)} disabled={!canEdit}>
             <Plus /> Add section
           </Button>
@@ -269,65 +287,113 @@ function GradeCard({ grade, canEdit, actions }: { grade: CurriculumGrade; canEdi
           </DropdownMenu>
         </div>
       </div>
-      <div className="divide-y">
+      <div className={cn("border-t bg-surface-subtle px-5 py-4", streamed ? "grid gap-3 lg:grid-cols-2" : "")}>
         {groups.map((group) => (
           <GroupBlock key={group.streamId ?? "none"} grade={grade} group={group} canEdit={canEdit} actions={actions} />
         ))}
       </div>
       {mode === "unstreamed" ? (
-        <p className="border-t px-4 py-2 text-xs text-muted-foreground">This grade has sections without streams, so streams can’t be added to it.</p>
+        <p className="flex items-center gap-2 border-t px-5 py-2.5 text-xs text-muted-foreground">
+          <Info className="size-3.5 shrink-0" aria-hidden />
+          This grade has sections without streams, so streams can’t be added to it.
+        </p>
       ) : null}
     </li>
   );
 }
 
+function gradeInitials(name: string): string {
+  const digits = /\d+/.exec(name)?.[0];
+  if (digits) return digits.slice(0, 3);
+  return name.trim().slice(0, 2).toUpperCase();
+}
+
 function GroupBlock({ grade, group, canEdit, actions }: { grade: CurriculumGrade; group: CurriculumGroup; canEdit: boolean; actions: CardActions }) {
   const stream = group.stream;
+  const inStreamedGrade = grade.streams.length > 0;
+  const sections =
+    group.sections.length === 0 ? (
+      <p className={cn("text-sm text-muted-foreground", inStreamedGrade ? "px-4 py-3" : "py-1")}>No sections yet.</p>
+    ) : (
+      <ul
+        className={cn(inStreamedGrade ? "divide-y" : "grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3")}
+        aria-label={`Sections of ${group.label}`}
+      >
+        {group.sections.map((section) => (
+          <li
+            key={section.id}
+            className={cn(
+              "group/section flex items-center justify-between gap-2",
+              inStreamedGrade ? "px-4 py-2.5 hover:bg-surface-subtle" : "rounded-lg border bg-surface px-3.5 py-3 shadow-xs",
+            )}
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-surface text-xs font-semibold text-foreground" aria-hidden>
+                {section.code}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{section.name}</p>
+                <p className="truncate text-xs text-muted-foreground tabular">
+                  Code {section.code} · {section.periodsPerWeek} periods/week
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center">
+              <Button variant="ghost" size="icon-sm" onClick={() => actions.editSection(grade, section)} disabled={!canEdit} aria-label={`Edit section ${grade.name} ${section.name}`}>
+                <Pencil />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hover:bg-destructive-muted hover:text-destructive"
+                onClick={() => actions.deleteSection(grade, section)}
+                disabled={!canEdit}
+                aria-label={`Delete section ${grade.name} ${section.name}`}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+
+  if (!inStreamedGrade) return sections;
+
   return (
-    <div className="px-4 py-3">
-      {stream ? (
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-medium text-foreground">
-            {stream.name} <span className="font-normal text-muted-foreground">({stream.code})</span>
-          </h3>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={() => actions.addSection(grade, stream.id)} disabled={!canEdit} aria-label={`Add section to ${grade.name} ${stream.name}`}>
-              <Plus /> Section
-            </Button>
-            <Button variant="ghost" size="icon-sm" onClick={() => actions.editStream(grade, stream)} disabled={!canEdit} aria-label={`Edit stream ${stream.name}`}>
-              <Pencil />
-            </Button>
-            <Button variant="ghost" size="icon-sm" onClick={() => actions.deleteStream(grade, stream)} disabled={!canEdit} aria-label={`Delete stream ${stream.name}`}>
-              <Trash2 />
-            </Button>
-          </div>
-        </div>
-      ) : grade.streams.length > 0 ? (
-        <h3 className="mb-2 text-sm font-medium text-foreground">Sections without a stream</h3>
-      ) : null}
-      {group.sections.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No sections yet.</p>
-      ) : (
-        <ul className="grid gap-1" aria-label={`Sections of ${group.label}`}>
-          {group.sections.map((section) => (
-            <li key={section.id} className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted/40">
-              <div className="min-w-0 text-sm">
-                <span className="font-medium text-foreground">{section.name}</span>
-                <span className="ml-2 text-xs text-muted-foreground">Code {section.code}</span>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <span className="mr-1 hidden text-xs text-muted-foreground tabular sm:inline">{section.periodsPerWeek} periods/week in curriculum</span>
-                <Button variant="ghost" size="icon-sm" onClick={() => actions.editSection(grade, section)} disabled={!canEdit} aria-label={`Edit section ${grade.name} ${section.name}`}>
-                  <Pencil />
-                </Button>
-                <Button variant="ghost" size="icon-sm" onClick={() => actions.deleteSection(grade, section)} disabled={!canEdit} aria-label={`Delete section ${grade.name} ${section.name}`}>
-                  <Trash2 />
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="overflow-hidden rounded-lg border bg-surface shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-l-[3px] border-l-primary/70 px-4 py-2.5">
+        {stream ? (
+          <>
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Stream</span>
+              <h3 className="truncate text-sm font-semibold text-foreground">{stream.name}</h3>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">{stream.code}</span>
+            </div>
+            <div className="flex items-center">
+              <Button variant="ghost" size="sm" onClick={() => actions.addSection(grade, stream.id)} disabled={!canEdit} aria-label={`Add section to ${grade.name} ${stream.name}`}>
+                <Plus /> Section
+              </Button>
+              <Button variant="ghost" size="icon-sm" onClick={() => actions.editStream(grade, stream)} disabled={!canEdit} aria-label={`Edit stream ${stream.name}`}>
+                <Pencil />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hover:bg-destructive-muted hover:text-destructive"
+                onClick={() => actions.deleteStream(grade, stream)}
+                disabled={!canEdit}
+                aria-label={`Delete stream ${stream.name}`}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          </>
+        ) : (
+          <h3 className="text-sm font-semibold text-foreground">Sections without a stream</h3>
+        )}
+      </div>
+      {sections}
     </div>
   );
 }

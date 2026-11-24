@@ -2,6 +2,7 @@
 /**
  * Dev utility: screenshot a page of the running test server (http://localhost:3100) with the shared session.
  * Usage: node e2e/tools/shot.mjs <path> <name> [width] [height] [light|dark]   → test-results/shots/<name>.png
+ * SHOT_FULL=0 captures only the viewport (the sidebar is viewport-height, so full-page shots crop it).
  * Prints the final URL and any console/page errors (for quick visual and runtime checks).
  */
 import { chromium } from "@playwright/test";
@@ -20,6 +21,6 @@ page.on("console", (m) => {
 page.on("pageerror", (e) => errors.push(`PAGEERROR ${e.message.slice(0, 300)}`));
 await page.goto(`http://localhost:3100${path}`, { waitUntil: "networkidle", timeout: 90_000 });
 await page.waitForTimeout(1200);
-await page.screenshot({ path: `${out}/${name}.png`, fullPage: true });
+await page.screenshot({ path: `${out}/${name}.png`, fullPage: process.env.SHOT_FULL !== "0" });
 console.log(JSON.stringify({ url: page.url(), title: await page.title(), errors }));
 await browser.close();

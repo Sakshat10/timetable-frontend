@@ -7,7 +7,7 @@ const toneClass: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground border-border",
   info: "bg-info-muted text-info border-info/20",
   success: "bg-success-muted text-success border-success/20",
-  warning: "bg-warning-muted text-warning-foreground border-warning/30 dark:text-warning",
+  warning: "bg-warning-muted text-warning-foreground border-warning/30",
   danger: "bg-destructive-muted text-destructive border-destructive/20",
   accent: "bg-accent text-accent-foreground border-primary/20",
 };

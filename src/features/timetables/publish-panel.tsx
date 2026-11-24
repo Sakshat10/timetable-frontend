@@ -52,7 +52,7 @@ export function ValidationSummary({
         {outdated ? <span className="text-xs text-muted-foreground">(rechecking the latest changes…)</span> : null}
       </div>
       {validation.isStale ? (
-        <p className="text-sm text-warning-foreground dark:text-warning">
+        <p className="text-sm text-warning-foreground">
           The setup has changed since this version was generated, so it is out of date{version.status === "DRAFT" ? " and can’t be published. Generate a new draft." : "."}
         </p>
       ) : null}
@@ -209,7 +209,7 @@ function PublishedNotice({ result, versionNumber }: { result: PublishResult; ver
           </Link>
         </p>
       ) : sub?.status === "FAILED" ? (
-        <p className="text-sm text-warning-foreground dark:text-warning">
+        <p className="text-sm text-warning-foreground">
           The timetable was published, but substitute cover could not be updated automatically; open cover requests stay open.{" "}
           <Link href="/operations" className="font-medium underline underline-offset-2">
             Review cover in daily operations

@@ -32,7 +32,7 @@ export function AttentionNote({ attention, className }: { attention: Cover["atte
   const text = attentionText(attention);
   if (!text) return null;
   return (
-    <p className={className ?? "flex items-start gap-1.5 text-xs text-warning-foreground dark:text-warning"}>
+    <p className={className ?? "flex items-start gap-1.5 text-xs text-warning-foreground"}>
       <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
       <span>
         <span className="sr-only">Needs attention: </span>

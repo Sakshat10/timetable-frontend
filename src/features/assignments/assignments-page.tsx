@@ -96,7 +96,7 @@ export function AssignmentsPage() {
         <div className="flex flex-col gap-4">
           {stale ? <StaleDataNotice onRetry={retry} /> : null}
           {inactivePins.length > 0 ? (
-            <div role="status" className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-muted px-3.5 py-2.5 text-sm text-warning-foreground dark:text-warning">
+            <div role="status" className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-muted px-3.5 py-2.5 text-sm text-warning-foreground">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
               <div>
                 {inactivePins.length === 1 ? "1 pin uses an inactive teacher" : `${inactivePins.length} pins use inactive teachers`}:{" "}
@@ -195,7 +195,7 @@ function GroupGrid({
   return (
     <Section id={headingId} title={group.label} description={group.sections.length === 0 ? "This curriculum has no sections yet." : undefined}>
       {group.sections.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border bg-surface">
+        <div className="overflow-hidden rounded-xl border bg-surface shadow-card">
           <div className="relative overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">Pinned teachers for {group.label}</caption>
@@ -237,7 +237,7 @@ function GroupGrid({
                           <Pin className="size-3.5 shrink-0 text-primary" aria-hidden />
                           <span className="truncate font-medium text-foreground">{pin.teacher.name}</span>
                           {!pin.teacher.isActive ? (
-                            <span className="shrink-0 rounded border border-warning/40 bg-warning-muted px-1 text-[0.65rem] font-medium text-warning-foreground dark:text-warning">
+                            <span className="shrink-0 rounded border border-warning/40 bg-warning-muted px-1 text-[0.65rem] font-medium text-warning-foreground">
                               Inactive
                             </span>
                           ) : null}

@@ -155,7 +155,7 @@ export function DailyBoard() {
 function CoverGroupView({ label, items, gradeNames, onOpen }: { label: string; items: Cover[]; gradeNames: Map<string, string>; onOpen: (id: string) => void }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className="overflow-hidden rounded-lg border bg-surface">
+    <section aria-labelledby={id} className="overflow-hidden rounded-xl border bg-surface shadow-card">
       <h3 id={id} className="flex items-center justify-between border-b bg-muted/50 px-4 py-2 text-sm font-semibold text-foreground">
         <span>{label}</span>
         <span className="tabular text-xs font-normal text-muted-foreground">

@@ -75,7 +75,7 @@ export function TeacherDetailPage({ teacherId }: { teacherId: string }) {
       {teacher.isError ? <StaleDataNotice onRetry={() => void teacher.refetch()} /> : null}
 
       {!t.isActive ? (
-        <div role="status" className="rounded-lg border border-warning/30 bg-warning-muted px-3.5 py-2.5 text-sm text-warning-foreground dark:text-warning">
+        <div role="status" className="rounded-xl border border-warning/30 bg-warning-muted px-3.5 py-2.5 text-sm text-warning-foreground">
           This teacher is inactive: they can’t be pinned to classes and the generator never chooses them. Generating a timetable is refused while they are still
           pinned to a class.
         </div>

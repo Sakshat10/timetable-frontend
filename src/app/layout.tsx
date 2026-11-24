@@ -15,20 +15,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#16171d" },
-  ],
+  themeColor: "#f5f7fa",
+  colorScheme: "light",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Reading the request headers makes every route render per request, which nonce-based CSP requires
-  // (src/lib/security/csp.ts). The nonce is set by src/proxy.ts.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // (src/lib/security/csp.ts): Next.js applies the nonce from the request's CSP header (set by src/proxy.ts)
+  // to its own scripts.
+  await headers();
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
       <body className="min-h-full">
-        <Providers nonce={nonce}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

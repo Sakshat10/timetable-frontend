@@ -18,9 +18,9 @@ export function SearchInput({
   className?: string;
 }) {
   return (
-    <div className={cn("relative w-full sm:w-72", className)}>
-      <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-      <Input type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={label} className="pr-8 pl-8" />
+    <div className={cn("relative w-full sm:w-80", className)}>
+      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+      <Input type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={label} className="pr-8 pl-9" />
       {value ? (
         <button
           type="button"

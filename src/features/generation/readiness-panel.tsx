@@ -106,7 +106,7 @@ function IssueGroup({ title, issues, severity, empty }: { title: string; issues:
       {issues.length === 0 ? (
         <p className="text-sm text-muted-foreground">{empty}</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-lg border bg-surface">
+        <ul className="flex flex-col divide-y rounded-xl border bg-surface shadow-card">
           {issues.map((issue, i) => {
             const link = issueLink(issue, basePath);
             return (
@@ -115,7 +115,7 @@ function IssueGroup({ title, issues, severity, empty }: { title: string; issues:
                   {severity === "error" ? (
                     <CircleAlert className="mt-0.5 size-4 shrink-0 text-destructive" aria-label="Blocking" />
                   ) : (
-                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning-foreground dark:text-warning" aria-label="Warning" />
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning-foreground" aria-label="Warning" />
                   )}
                   <div className="min-w-0 space-y-0.5">
                     <p className="text-sm font-medium">{issue.message}</p>
@@ -145,7 +145,7 @@ function SectionDemand({ report }: { report: Feasibility }) {
   const rows = report.breakdown.sections;
   if (rows.length === 0) return null;
   return (
-    <Collapsible className="rounded-lg border bg-surface">
+    <Collapsible className="rounded-xl border bg-surface shadow-card">
       <CollapsibleTrigger className="group flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold">
         Periods per class versus weekly slots ({rows.length})
         <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" aria-hidden />
@@ -190,7 +190,7 @@ function AssignedTeachers({ report }: { report: Feasibility }) {
   const [open, setOpen] = useState(false);
   if (rows.length === 0) return null;
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border bg-surface">
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-xl border bg-surface shadow-card">
       <CollapsibleTrigger className="group flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold">
         Explicitly assigned teachers: planned periods versus capacity ({rows.length})
         <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" aria-hidden />

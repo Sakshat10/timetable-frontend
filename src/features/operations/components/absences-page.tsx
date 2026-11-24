@@ -174,7 +174,7 @@ export function AbsencesPage() {
               </div>
               <ul className="space-y-2 md:hidden" aria-label="Absences">
                 {absences.data.map((a) => (
-                  <li key={a.id} className="space-y-2 rounded-lg border bg-surface p-3 text-sm">
+                  <li key={a.id} className="space-y-2 rounded-xl border bg-surface shadow-card p-3 text-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <Link href={`/operations/absences/${a.id}`} className="font-medium text-foreground hover:underline">

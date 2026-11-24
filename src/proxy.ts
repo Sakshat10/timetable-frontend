@@ -7,7 +7,7 @@ import { buildCsp, createNonce } from "@/lib/security/csp";
  *  - /api/*: same-origin guard for state-changing browser requests (src/lib/security/same-origin.ts). Allowed
  *    requests continue to the rewrite that forwards them to the backend. Server-side calls are unaffected:
  *    they go straight to BACKEND_URL (src/lib/api/server.ts), not through this proxy.
- *  - pages: optimistic session check (no backend call; the authoritative check is GET /api/admin/me in
+ *  - pages: "/" (landing), /login and /signup are public; elsewhere an optimistic session check (no backend call; the authoritative check is GET /api/admin/me in
  *    src/app/(app)/layout.tsx) and a per-request Content-Security-Policy nonce.
  */
 const SESSION_COOKIE = "session_token";
@@ -30,7 +30,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isPublic = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  // "/" is the public landing page (it redirects signed-in users itself, after checking the session).
+  const isPublic = pathname === "/" || PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
   if (!isPublic && !hasSession) {
     const url = request.nextUrl.clone();
