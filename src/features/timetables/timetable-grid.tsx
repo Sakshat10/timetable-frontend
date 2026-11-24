@@ -158,7 +158,7 @@ function LessonCard({
 }
 
 function Free() {
-  return <span className="flex h-full min-h-16 items-center justify-center text-xs text-muted-foreground/70">Free</span>;
+  return <span className="flex h-full min-h-16 items-center justify-center text-xs text-muted-foreground">Free</span>;
 }
 
 function StaticGrid({ view, kind, mode, pendingIds, onToggleLock }: GridProps) {

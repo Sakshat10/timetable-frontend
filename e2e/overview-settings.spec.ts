@@ -42,7 +42,7 @@ test("setup guide derives progress from saved data and links to each step", asyn
 
 test("the year switcher keeps the current page and the year survives a refresh", async ({ page }) => {
   await page.goto(`/years/${current().id}/setup`);
-  await page.getByRole("button", { name: /Academic year: .* Change year/ }).click();
+  await page.getByRole("button", { name: /^Academic year.*change academic year$/ }).click();
   await page.getByRole("menuitem", { name: new RegExp(future().name) }).click();
   await page.waitForURL(new RegExp(`/years/${future().id}/setup$`));
   await page.reload();

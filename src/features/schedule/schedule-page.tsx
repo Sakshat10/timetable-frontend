@@ -302,7 +302,7 @@ function WorkingDaysField({ control, disabled }: { control: Control<FormValues>;
                     key={day}
                     type="button"
                     aria-pressed={on}
-                    aria-label={DAY_LABEL[day]}
+                    aria-label={`${DAY_SHORT[day]} (${DAY_LABEL[day]})`}
                     disabled={disabled}
                     onClick={() => field.onChange(orderDays(on ? field.value.filter((d) => d !== day) : [...field.value, day]))}
                     className={cn(
