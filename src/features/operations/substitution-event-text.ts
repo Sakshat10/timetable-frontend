@@ -2,6 +2,11 @@ import type { SubstitutionEvent } from "@/lib/api/schemas";
 
 /** One readable sentence per substitution event type (types from GET /api/substitution-events). */
 export function describeSubstitutionEvent(event: SubstitutionEvent): string {
+  const sentence = describe(event);
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+}
+
+function describe(event: SubstitutionEvent): string {
   const absent = event.absentTeacher.name ?? "A teacher";
   const to = event.toTeacher?.name ?? "a substitute";
   const from = event.fromTeacher?.name ?? "the previous substitute";
