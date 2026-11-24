@@ -7,12 +7,19 @@ import { seed } from "./support/seed";
  *
  * DATA OWNERSHIP: seeded covers/absences are only read. Every absence this spec records is on wd["2"]..wd["4"]
  * for seeded teachers and is cancelled in afterAll (after removing any manual assignment this spec made).
- * Deepak Kulkarni teaches P1 and P6 on wd["3"] (Thursday); Arjun Mehta teaches P3 and P4 on wd["4"] (Friday).
+ * The dates and periods used are DERIVED from the published timetable in beforeAll (never hard-coded), so the
+ * spec survives a reseed: a day on which Deepak teaches at least two lessons, and Arjun's first two lessons on
+ * another day.
  */
 const m = seed();
 const wd = m.dates.wd;
-const D3 = wd["3"]!;
-const D4 = wd["4"]!;
+let D3 = wd["3"]!; // Deepak's full-day absence date (re-derived in beforeAll)
+let D4 = wd["4"]!; // Arjun's periods absence date (re-derived in beforeAll)
+let DEEPAK_FIRST = 1;
+let DEEPAK_LAST = 6;
+let DEEPAK_COUNT = 2;
+let ARJUN_RANGE: [number, number] = [3, 4];
+let ARJUN_OVERLAP: [number, number] = [4, 5];
 const D2 = wd["2"]!;
 const teachers = m.teachers as Record<string, { id: string; name: string; employeeCode: string }>;
 const DEEPAK = teachers.deepak!;
@@ -23,6 +30,45 @@ const createdAbsences: string[] = [];
 const createdUnavailability: string[] = [];
 
 test.describe.configure({ mode: "serial" });
+
+const WEEKDAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+const weekday = (date: string) => WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()]!;
+
+test.beforeAll(async ({ baseURL }) => {
+  const api = await request.newContext({ baseURL, storageState: "e2e/.auth/admin.json" });
+  const versions = await (await api.get(`/api/timetable-versions?academicYearId=${m.academicYears.current.id}&status=PUBLISHED`)).json();
+  const published = versions.data[0].id as string;
+  async function lessonsOn(teacherId: string, date: string): Promise<number[]> {
+    const view = await (await api.get(`/api/timetable-versions/${published}/timetable?view=teacher&id=${teacherId}`)).json();
+    return (view.data.cells as Array<{ dayOfWeek: string; periodNumber: number; lesson: unknown }>)
+      .filter((c) => c.dayOfWeek === weekday(date) && c.lesson)
+      .map((c) => c.periodNumber)
+      .sort((a, b) => a - b);
+  }
+  // Deepak: a working day (not wd0/wd1, which hold seeded covers) on which he teaches at least two lessons.
+  for (const key of ["3", "2", "4"]) {
+    const periods = await lessonsOn(DEEPAK.id, wd[key]!);
+    if (periods.length >= 2) {
+      D3 = wd[key]!;
+      DEEPAK_FIRST = periods[0]!;
+      DEEPAK_LAST = periods[periods.length - 1]!;
+      DEEPAK_COUNT = periods.length;
+      break;
+    }
+  }
+  // Arjun: a different day with at least two lessons; absent for exactly his first two lessons.
+  for (const key of ["4", "2", "3"]) {
+    if (wd[key] === D3) continue;
+    const periods = await lessonsOn(ARJUN.id, wd[key]!);
+    if (periods.length >= 2) {
+      D4 = wd[key]!;
+      ARJUN_RANGE = [periods[0]!, periods[1]!];
+      ARJUN_OVERLAP = [periods[1]!, periods[1]!];
+      break;
+    }
+  }
+  await api.dispose();
+});
 
 test.afterAll(async ({ baseURL }) => {
   const api = await request.newContext({ baseURL, storageState: "e2e/.auth/admin.json" });
@@ -89,10 +135,16 @@ async function openTeacherGroup(page: Page, date: string, teacherName: string) {
   return group;
 }
 
+/** The board's heading for a calendar date, computed (never hard-coded) so the spec survives a reseed. */
+function showing(date: string): RegExp {
+  const label = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
+  return new RegExp(`^Showing ${label.replace(",", ",?")}`);
+}
+
 test("the board shows the seeded covers for the reference day, labels the date and has the updates bell", async ({ page }) => {
   await page.goto(`/operations?date=${wd["0"]}`);
   await expect(page).toHaveTitle(/Daily cover/);
-  await expect(page.getByRole("heading", { name: /^Showing Monday,? 23 November 2026/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: showing(wd["0"]!) })).toBeVisible();
   await expect(page.getByText("Dates follow the server’s calendar (UTC)")).toBeVisible();
   await expect(page.getByTestId("cover-row").filter({ hasText: "Imran Khan" })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Substitution updates/ })).toBeVisible();
@@ -100,7 +152,7 @@ test("the board shows the seeded covers for the reference day, labels the date a
   // Date navigation across days (UTC): next day, then back.
   await page.getByRole("button", { name: "Next day" }).click();
   await expect(page).toHaveURL(new RegExp(`date=${wd["1"]}`));
-  await expect(page.getByRole("heading", { name: /^Showing Tuesday,? 24 November 2026/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: showing(wd["1"]!) })).toBeVisible();
   await page.getByRole("button", { name: "Previous day" }).click();
   await expect(page).toHaveURL(new RegExp(`date=${wd["0"]}`));
 
@@ -111,27 +163,27 @@ test("records a full-day absence: lessons preview, covers created and the alloca
   const sheet = await openRecordSheet(page);
   await fillAbsence(page, DEEPAK, D3);
   const preview = sheet.getByText("Lessons from the published timetable").locator("..");
-  await expect(preview).toContainText("P1");
-  await expect(preview).toContainText("P6");
+  await expect(preview).toContainText(`P${DEEPAK_FIRST}`);
+  await expect(preview).toContainText(`P${DEEPAK_LAST}`);
   await sheet.getByRole("button", { name: "Record absence" }).click();
 
   await expect(page.getByRole("dialog", { name: "Absence recorded" })).toBeVisible();
-  await expect(sheet.getByText("2 lessons now need cover")).toBeVisible();
+  await expect(sheet.getByText(`${DEEPAK_COUNT} lessons now need cover`)).toBeVisible();
   await expect(sheet.getByText("Automatic assignment was off")).toBeVisible();
   const id = await rememberAbsence(page);
 
   await page.goto(`/operations/absences/${id}`);
   await expect(page.getByRole("heading", { name: `${DEEPAK.name}’s absence` })).toBeVisible();
   await expect(page.getByText("Affected lessons", { exact: true }).locator("../..")).toContainText("2");
-  await page.getByRole("link", { name: /Open period 1 .* in daily cover/ }).click();
+  await page.getByRole("link", { name: new RegExp(`Open period ${DEEPAK_FIRST} .* in daily cover`) }).click();
   await expect(page).toHaveURL(new RegExp(`date=${D3}.*cover=`));
-  await expect(page.getByRole("dialog", { name: /Period 1/ })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: new RegExp(`Period ${DEEPAK_FIRST}\\b`) })).toBeVisible();
 });
 
 test("opens a cover, shows tiered candidates, assigns, replaces and unassigns", async ({ page }) => {
   const group = await openTeacherGroup(page, D3, DEEPAK.name);
-  await group.getByRole("button", { name: /^Find substitute: period 1/ }).click();
-  const sheet = page.getByRole("dialog", { name: /Period 1/ });
+  await group.getByRole("button", { name: new RegExp(`^Find substitute: period ${DEEPAK_FIRST}\\b`) }).click();
+  const sheet = page.getByRole("dialog", { name: new RegExp(`Period ${DEEPAK_FIRST}\\b`) });
   await expect(sheet.getByRole("heading", { name: "Choose a substitute" })).toBeVisible();
   await expect(sheet.getByRole("heading", { name: /^(Same subject|Other available teachers)/ }).first()).toBeVisible();
   await expect(sheet.getByText("School setting:")).toBeVisible();
@@ -158,8 +210,8 @@ test("opens a cover, shows tiered candidates, assigns, replaces and unassigns", 
 
 test("asks for an explicit confirmation when the server requires one for four consecutive periods", async ({ page }) => {
   const group = await openTeacherGroup(page, D3, DEEPAK.name);
-  await group.getByRole("button", { name: /^Find substitute: period 6/ }).click();
-  const sheet = page.getByRole("dialog", { name: /Period 6/ });
+  await group.getByRole("button", { name: new RegExp(`^Find substitute: period ${DEEPAK_LAST}\\b`) }).click();
+  const sheet = page.getByRole("dialog", { name: new RegExp(`Period ${DEEPAK_LAST}\\b`) });
   await expect(sheet.getByRole("heading", { name: "Choose a substitute" })).toBeVisible();
   const coverId = new URL(page.url()).searchParams.get("cover")!;
 
@@ -203,8 +255,8 @@ test("asks for an explicit confirmation when the server requires one for four co
 
 test("cancels a cover with a reason and shows it with the cancelled toggle", async ({ page }) => {
   const group = await openTeacherGroup(page, D3, DEEPAK.name);
-  await group.getByRole("button", { name: /^Find substitute: period 6/ }).click();
-  const sheet = page.getByRole("dialog", { name: /Period 6/ });
+  await group.getByRole("button", { name: new RegExp(`^Find substitute: period ${DEEPAK_LAST}\\b`) }).click();
+  const sheet = page.getByRole("dialog", { name: new RegExp(`Period ${DEEPAK_LAST}\\b`) });
   await sheet.getByRole("button", { name: "Cancel cover" }).click();
   const dialog = page.getByRole("alertdialog", { name: "Cancel this cover?" });
   // A reserved system reason is explained without calling the server.
@@ -215,10 +267,10 @@ test("cancels a cover with a reason and shows it with the cancelled toggle", asy
   await dialog.getByRole("button", { name: "Cancel cover" }).click();
   await expect(dialog).toBeHidden();
   await expect(sheet).toBeHidden();
-  await expect(group.getByRole("button", { name: /period 6/ })).toHaveCount(0);
+  await expect(group.getByRole("button", { name: new RegExp(`period ${DEEPAK_LAST}\\b`) })).toHaveCount(0);
 
   await page.getByRole("switch", { name: "Show cancelled and obsolete" }).click();
-  await expect(page.getByRole("region", { name: new RegExp(DEEPAK.name) }).getByRole("button", { name: /^View: period 6/ }).first()).toBeVisible();
+  await expect(page.getByRole("region", { name: new RegExp(DEEPAK.name) }).getByRole("button", { name: new RegExp(`^View: period ${DEEPAK_LAST}\\b`) }).first()).toBeVisible();
 });
 
 test("assigns automatically for the day and shows the run counts", async ({ page }) => {
@@ -236,14 +288,14 @@ test("assigns automatically for the day and shows the run counts", async ({ page
 
 test("records a periods absence, refuses an overlapping one and edits the reason", async ({ page }) => {
   const sheet = await openRecordSheet(page);
-  await fillAbsence(page, ARJUN, D4, [3, 4]);
+  await fillAbsence(page, ARJUN, D4, ARJUN_RANGE);
   await sheet.getByRole("button", { name: "Record absence" }).click();
   await expect(page.getByRole("dialog", { name: "Absence recorded" })).toBeVisible();
   await expect(sheet.getByText("2 lessons now need cover")).toBeVisible();
   const id = await rememberAbsence(page);
 
   await sheet.getByRole("button", { name: "Record another" }).click();
-  await fillAbsence(page, ARJUN, D4, [4, 5]);
+  await fillAbsence(page, ARJUN, D4, ARJUN_OVERLAP);
   await sheet.getByRole("button", { name: "Record absence" }).click();
   const alert = sheet.getByRole("alert");
   await expect(alert).toContainText("overlaps");
@@ -252,7 +304,7 @@ test("records a periods absence, refuses an overlapping one and edits the reason
 
   await page.goto(`/operations/absences/${id}`);
   await expect(page.getByRole("heading", { name: `${ARJUN.name}’s absence` })).toBeVisible();
-  await expect(page.getByText("Periods 3–4").first()).toBeVisible();
+  await expect(page.getByText(`Periods ${ARJUN_RANGE[0]}–${ARJUN_RANGE[1]}`).first()).toBeVisible();
   await page.getByRole("button", { name: "Edit absence" }).click();
   const edit = page.getByRole("dialog", { name: "Edit absence" });
   await expect(edit.getByRole("combobox", { name: "Teacher" })).toBeDisabled();

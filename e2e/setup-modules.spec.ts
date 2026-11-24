@@ -1,3 +1,4 @@
+import { seed } from "./support/seed";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 /**
@@ -7,8 +8,8 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
  * records created here, named with the "QA-S" prefix (subject codes start with "QAS"). The ACTIVE year 2026-27 is
  * only read. Everything created is removed at the end (UI first, then an API sweep as a safety net).
  */
-const FUTURE = "727f70f5-dcc0-4a43-ba8d-d20c0499ab5d";
-const ACTIVE = "f19dcf01-f5e9-4c82-a6e9-6dc898af7240";
+const FUTURE = seed().academicYears.future.id;
+const ACTIVE = seed().academicYears.current.id;
 const RUN = Date.now().toString(36).slice(-5).toUpperCase();
 const GRADE = `QA-S Grade A ${RUN}`;
 const GRADE_EDITED = `QA-S Grade A1 ${RUN}`;

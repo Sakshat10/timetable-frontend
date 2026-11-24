@@ -1,3 +1,4 @@
+import { seed } from "./support/seed";
 import { expect, request, test, type APIRequestContext, type Page } from "@playwright/test";
 import { forbiddenControls } from "./support/boundaries";
 
@@ -10,7 +11,7 @@ import { forbiddenControls } from "./support/boundaries";
  */
 
 const YEAR_NAME = "QA-TT 2031-32";
-const ACTIVE_YEAR_ID = "f19dcf01-f5e9-4c82-a6e9-6dc898af7240";
+const ACTIVE_YEAR_ID = seed().academicYears.current.id;
 const SUBJECTS = ["Mathematics", "English", "Science", "Hindi"] as const;
 const PERIODS_PER_SUBJECT = 6; // 24 of 30 weekly slots per class: leaves free cells for moves
 

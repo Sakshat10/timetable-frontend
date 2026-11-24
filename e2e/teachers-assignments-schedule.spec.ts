@@ -1,3 +1,4 @@
+import { seed } from "./support/seed";
 import { expect, request, test, type APIRequestContext, type Page } from "@playwright/test";
 import { forbiddenControls } from "./support/boundaries";
 
@@ -6,8 +7,8 @@ import { forbiddenControls } from "./support/boundaries";
  * Data ownership: only teachers named "QA-T …" (codes "QAT-…") are created and removed here; eligibility, pins and the
  * schedule are written only on the DRAFT year 2027-28, and only for teachers this spec created. The schedule is restored.
  */
-const DRAFT_YEAR = "727f70f5-dcc0-4a43-ba8d-d20c0499ab5d"; // 2027-28
-const ACTIVE_YEAR = "f19dcf01-f5e9-4c82-a6e9-6dc898af7240"; // 2026-27
+const DRAFT_YEAR = seed().academicYears.future.id; // 2027-28 in the seed
+const ACTIVE_YEAR = seed().academicYears.current.id; // 2026-27 in the seed
 const RUN = Date.now().toString(36).slice(-5).toUpperCase();
 const STATE = "e2e/.auth/admin.json";
 

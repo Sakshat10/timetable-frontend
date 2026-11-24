@@ -33,9 +33,10 @@ for (const path of PAGES()) {
 test("the navigation opens as a drawer on phones", async ({ page }) => {
   await page.goto(`/years/${yearId()}/dashboard`);
   await page.getByRole("button", { name: "Toggle navigation" }).click();
-  const classes = page.getByRole("link", { name: "Classes" });
-  await expect(classes).toBeVisible();
-  await classes.click();
+  const navLink = page.locator("[data-sidebar='menu-button']").filter({ hasText: /^Classes$/ });
+  await expect(navLink).toBeVisible();
+  await navLink.click();
   await page.waitForURL(/\/classes$/);
-  await expect(page.getByRole("link", { name: "Classes" })).toBeHidden();
+  // The drawer closes after navigating (the breadcrumb's current-page "Classes" is not a nav link).
+  await expect(navLink).toBeHidden();
 });

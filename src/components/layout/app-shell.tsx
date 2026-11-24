@@ -11,9 +11,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AppSidebar />
       <SidebarInset className="min-w-0 bg-background">
         <AppHeader />
-        <main id="main" className="min-w-0 flex-1">
+        <div id="main" className="min-w-0 flex-1">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

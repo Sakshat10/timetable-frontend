@@ -62,6 +62,8 @@ test("the schedule uses the simplified model only (no clock-time inputs)", async
 
 test("navigation contains only implemented pages", async ({ page }) => {
   await page.goto(`/years/${current()}/dashboard`);
+  await page.getByRole("heading", { name: "Dashboard" }).waitFor();
+  await page.waitForLoadState("networkidle");
   const hrefs = await page.locator("[data-sidebar='menu-button']").evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).getAttribute("href") ?? ""));
   expect(hrefs.length).toBeGreaterThan(10);
   for (const href of hrefs) {
