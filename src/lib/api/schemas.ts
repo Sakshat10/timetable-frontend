@@ -332,7 +332,16 @@ export type CurriculumOverview = z.infer<typeof curriculumOverviewSchema>;
 const planLine = z.looseObject({ subjectId: uuid, subjectName: z.string().optional(), periodsPerWeek: z.number().optional() });
 export const curriculumPlanSchema = z.looseObject({
   create: z.array(planLine),
-  update: z.array(z.looseObject({ id: uuid, subjectId: uuid, subjectName: z.string(), changes: z.array(z.string()) })),
+  update: z.array(
+    z.looseObject({
+      id: uuid,
+      subjectId: uuid,
+      subjectName: z.string(),
+      changes: z.array(z.string()),
+      from: z.looseObject({ periodsPerWeek: z.number().optional(), isOptional: z.boolean().optional(), sectionScope: z.string().optional(), sectionIds: z.array(uuid).optional() }).optional(),
+      to: z.looseObject({ periodsPerWeek: z.number().optional(), isOptional: z.boolean().optional(), sectionScope: z.string().optional(), sectionIds: z.array(uuid).optional() }).optional(),
+    }),
+  ),
   remove: z.array(z.looseObject({ id: uuid, subjectId: uuid, subjectName: z.string(), periodsPerWeek: z.number() })),
   unchanged: z.number(),
 });
