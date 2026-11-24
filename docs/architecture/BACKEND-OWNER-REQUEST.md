@@ -73,6 +73,10 @@ We examined every response header the frontend could need:
 
 The only case for `exposedHeaders: ['Location','Retry-After']` is a future cross-origin client. If Phase 1 tests show the proxy strips `Retry-After`, we will fix that on the frontend side, not here.
 
+## Low priority
+
+- **Logout cookie attributes.** In production, login sets `HttpOnly; Secure; SameSite=Strict`, but logout's clearing cookie is `Max-Age=0; Path=/; SameSite=Lax`, without `Secure` (observed 2026-11-24). Browsers still remove the cookie over HTTPS, and the server-side session is deleted, so nothing breaks. Matching the attributes (`clearCookie(name, { path: '/', secure, sameSite })`) would be tidier.
+
 ## Documentation drift (low priority, for whenever docs are next touched)
 
 These were found during the audit (`PHASE-0-AUDIT.md` §9):

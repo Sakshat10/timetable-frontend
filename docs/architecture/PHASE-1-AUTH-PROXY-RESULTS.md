@@ -77,7 +77,13 @@ Final run: **13 passed, 0 failed**. The test IDs:
 | T7.1–T7.3 401 messages through the proxy; Ajv 400 `{message}` before auth | passed |
 | T7.4 another school's year → 403 from the API, "Page not found" in the UI | passed (created "QA Isolation School" in the disposable DB) |
 
-**E2 (production-like cookie flags):** the `Set-Cookie` from the `NODE_ENV=production` backend on :4011 was observed in the T5 runs. A browser-level check of `Secure; SameSite=Strict` through Next.js (T2.2) is **not yet automated**. It needs an HTTPS or Chromium-on-localhost run, and is listed in the README as a release check.
+**E2 (production-like cookie flags), T2.2:**
+- **Verified on 2026-11-24 at HTTP level.** A `NODE_ENV=production` backend on :4011 sat behind `next dev` on :3300, against the disposable database.
+- Logging in through the forwarding layer returned `Set-Cookie: session_token=…; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Strict`, unchanged by Next.js.
+- Logout returned `session_token=; Max-Age=0; Path=/; Expires=…; SameSite=Lax`.
+- A browser-level check over real HTTPS remains a staging release check.
+
+**Full suite:** Playwright on a freshly reseeded disposable backend: **99 passed, 0 failed** (projects `setup`, `auth`, `app`, `mobile`).
 
 **T6:**
 - **Covered:** CORS is irrelevant same-origin (T3.1, T6.1).

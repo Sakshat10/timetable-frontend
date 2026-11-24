@@ -118,10 +118,10 @@ Specifications and decisions are in [`docs/architecture/`](docs/architecture/REA
 4. **Frontend settings:** `BACKEND_URL=<internal backend origin>` at build and run time.
 5. **HTTPS is required.** In production the session cookie is `Secure; SameSite=Strict`, and it is first-party because the browser only talks to the frontend origin.
 
-**Release checks not automated here:**
-- staging client-IP measurement (T5.7);
-- `Secure`/`Strict` cookie flags in a browser over HTTPS (T2.2);
-- cross-site form checks (T6.4, T6.5).
+**Release checks not automated here** (run them on staging):
+- the client-IP measurement through the real proxy chain (T5.7);
+- the `Secure`/`Strict` cookie in a browser over HTTPS (T2.2 is verified at HTTP level);
+- the cross-site form checks (T6.4, T6.5).
 
 ## Troubleshooting
 
