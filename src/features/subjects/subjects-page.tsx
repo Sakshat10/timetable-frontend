@@ -38,6 +38,7 @@ export function SubjectsPage() {
   const counts = useMemo(() => gradeCounts(overview.data), [overview.data]);
   const rows = useMemo(() => (subjects.data ?? []).filter((s) => matchesQuery(query, s.name, s.code)), [subjects.data, query]);
   const details = subjects.data?.find((s) => s.id === detailsId) ?? null;
+  const existingCodes = useMemo(() => (subjects.data ?? []).map((s) => s.code), [subjects.data]);
 
   const columns = useMemo<DataColumn<Subject>[]>(
     () => [
@@ -166,8 +167,13 @@ export function SubjectsPage() {
         onEdit={(s) => setDialog({ kind: "edit", subject: s })}
         onDelete={(s) => setDialog({ kind: "delete", subject: s })}
       />
-      <SubjectDialog open={dialog?.kind === "create" || dialog?.kind === "edit"} onOpenChange={(o) => !o && setDialog(null)} subject={dialog?.kind === "edit" ? dialog.subject : undefined} invalidate={invalidate} />
-      <BulkSubjectsDialog open={dialog?.kind === "bulk"} onOpenChange={(o) => !o && setDialog(null)} invalidate={invalidate} />
+      <SubjectDialog open={dialog?.kind === "create" || dialog?.kind === "edit"} onOpenChange={(o) => !o && setDialog(null)} subject={dialog?.kind === "edit" ? dialog.subject : undefined} invalidate={invalidate} existingCodes={existingCodes} />
+      <BulkSubjectsDialog
+        open={dialog?.kind === "bulk"}
+        onOpenChange={(o) => !o && setDialog(null)}
+        invalidate={invalidate}
+        existingCodes={existingCodes}
+      />
       <DeleteRecordDialog
         open={dialog?.kind === "delete"}
         onOpenChange={(o) => !o && setDialog(null)}

@@ -173,6 +173,42 @@ test.describe("setup modules", () => {
     await expect(page.getByRole("cell", { name: `${SUBJECT.code}C`, exact: true })).toHaveCount(0);
   });
 
+  test("subjects: codes are filled in from the names and a typed code is kept (nothing is saved)", async ({ page }) => {
+    await openFuture(page, "subjects");
+    const existing = ((await (await page.request.get("/api/subjects")).json()).data as Array<{ code: string }>).map((s) => s.code);
+    const dialog = page.getByRole("dialog");
+
+    // Add several: each row's code follows its name; clashes with existing subjects or other rows get a number.
+    await page.getByRole("button", { name: "Add several" }).click();
+    await dialog.getByLabel("Row 1 subject name").fill("Zygology");
+    await expect(dialog.getByLabel("Row 1 code")).toHaveValue(existing.includes("ZYG") ? /^ZYG\d+$/ : "ZYG");
+    await dialog.getByLabel("Row 2 subject name").fill("Zygology extra");
+    await expect(dialog.getByLabel("Row 2 code")).toHaveValue(/^ZE\d*$/);
+    await dialog.getByLabel("Row 3 subject name").fill("Zygology");
+    const first = await dialog.getByLabel("Row 1 code").inputValue();
+    await expect(dialog.getByLabel("Row 3 code")).not.toHaveValue(first); // no duplicate within the list
+    // A typed code is kept when the name changes afterwards.
+    await dialog.getByLabel("Row 1 code").fill("MYCODE");
+    await dialog.getByLabel("Row 1 subject name").fill("Something else");
+    await expect(dialog.getByLabel("Row 1 code")).toHaveValue("MYCODE");
+    // Clearing the code hands it back to the name.
+    await dialog.getByLabel("Row 1 code").fill("");
+    await dialog.getByLabel("Row 1 subject name").fill("Quokka studies");
+    await expect(dialog.getByLabel("Row 1 code")).toHaveValue(/^QS\d*$/);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+
+    // Add subject: the same suggestion; nothing is submitted.
+    await page.getByRole("button", { name: "Add subject" }).first().click();
+    await dialog.getByLabel("Subject name").fill("Quokka studies");
+    await expect(dialog.getByLabel("Code")).toHaveValue(/^QS\d*$/);
+    await dialog.getByLabel("Code").fill("QKS");
+    await dialog.getByLabel("Subject name").fill("Quokka studies 2");
+    await expect(dialog.getByLabel("Code")).toHaveValue("QKS");
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toBeHidden();
+  });
+
   test("curriculum: review the dry-run plan, then apply", async ({ page }) => {
     await openFuture(page, "curriculum");
     await expect(page.getByText("Curriculum is not teacher assignment.")).toBeVisible();

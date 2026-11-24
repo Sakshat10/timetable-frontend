@@ -21,6 +21,24 @@ export function codeProblem(code: string): string | null {
   return null;
 }
 
+/**
+ * A code suggested from a subject name, so the administrator does not have to invent one:
+ *  - several words: their initials ("Computer Science" -> CS, "Physical Education" -> PE);
+ *  - one word: its first three characters ("Hindi" -> HIN, "maths" -> MAT); short words are kept whole ("SST", "PE");
+ *  - if the code is taken (by another row or an existing subject), a number is added (MAT, MAT2, MAT3, ...).
+ * Only letters and digits are used, so the result always passes codeProblem(). Empty when the name has none.
+ */
+export function suggestSubjectCode(name: string, taken: ReadonlySet<string> = new Set()): string {
+  const words = name.toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+  if (words.length === 0) return "";
+  const base = (words.length > 1 ? words.map((w) => w[0]).join("") : words[0]!.slice(0, 3)).slice(0, 16);
+  if (!taken.has(base)) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base}${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+}
+
 /** Single create/edit form (mirrors createSubjectSchema). */
 export const subjectFormSchema = z.object({
   name: z.string().trim().min(1, "Enter a name").max(100, "Use at most 100 characters"),
