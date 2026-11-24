@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { CalendarDays } from "lucide-react";
 import {
   Sidebar,
@@ -17,6 +18,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useSession } from "@/features/auth/session-provider";
 import { useOptionalYear } from "@/features/academic-years/year-context";
+import { pickDefaultYear } from "@/features/academic-years/year-defaults";
+import { yearsApi } from "@/lib/api/endpoints";
+import { qk } from "@/lib/query/keys";
 import { YearSwitcher } from "@/features/academic-years/year-switcher";
 import { NAV, resolveHref } from "./nav";
 import { useRememberedYearId } from "./use-remembered-year";
@@ -26,7 +30,9 @@ export function AppSidebar() {
   const { school } = useSession();
   const yearContext = useOptionalYear();
   const rememberedYearId = useRememberedYearId();
-  const yearId = yearContext?.year.id ?? rememberedYearId;
+  // Outside a year (operations, settings) the year-scoped links use the remembered year, else the default year.
+  const years = useQuery({ queryKey: qk.years(), queryFn: yearsApi.list, enabled: !yearContext });
+  const yearId = yearContext?.year.id ?? pickDefaultYear(years.data ?? [], rememberedYearId)?.id ?? null;
   const { setOpenMobile } = useSidebar();
 
   return (
