@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { SetupReturnLink } from "./setup-return-link";
 
 interface PageHeaderProps {
   title: string;
@@ -16,6 +17,9 @@ export function PageHeader({ title, description, actions, eyebrow, className }: 
   return (
     <header className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0 space-y-1.5">
+        <Suspense fallback={null}>
+          <SetupReturnLink />
+        </Suspense>
         {eyebrow ? <div className="text-xs font-semibold tracking-wide text-primary">{eyebrow}</div> : null}
         <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-9">{title}</h1>
         {description ? <div className="max-w-3xl text-sm leading-6 text-muted-foreground">{description}</div> : null}
