@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { FieldGroup } from "@/components/ui/field";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { applyServerErrors, FormAlert, TextField } from "@/components/shared/form-fields";
 import { PendingButton } from "@/components/shared/confirm-dialog";
 import { authApi } from "@/lib/api/endpoints";
@@ -72,15 +72,17 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Sign in</CardTitle>
-        <CardDescription>Use your school’s ID and your administrator account.</CardDescription>
+    <Card className="gap-6 rounded-2xl py-8 shadow-raised [--card-spacing:--spacing(6)] sm:[--card-spacing:--spacing(8)]">
+      <CardHeader className="gap-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground" data-slot="card-title">
+          Sign in
+        </h1>
+        <CardDescription className="text-[15px]">Welcome back. Use your school’s ID and your administrator account.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {expired ? (
-          <div role="status" className="flex items-start gap-2 rounded-md border bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+          <div role="status" className="flex items-start gap-2.5 rounded-xl border border-primary/15 bg-primary-soft/70 px-3.5 py-3 text-sm text-secondary-foreground">
+            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
             Your session ended. Sign in again to continue where you left off.
           </div>
         ) : null}
@@ -97,11 +99,11 @@ export function LoginForm() {
             <TextField control={form.control} name="password" label="Password" type="password" autoComplete="current-password" />
           </FieldGroup>
           <FormAlert>{formError}</FormAlert>
-          <PendingButton type="submit" className="w-full" size="lg" pending={form.formState.isSubmitting}>
+          <PendingButton type="submit" className="h-11 w-full text-[15px]" size="lg" pending={form.formState.isSubmitting}>
             Sign in
           </PendingButton>
         </form>
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="border-t pt-5 text-center text-sm text-muted-foreground">
           New school?{" "}
           <Link href="/signup" className="font-medium text-primary hover:underline">
             Set up your school

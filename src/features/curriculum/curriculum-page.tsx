@@ -146,9 +146,9 @@ export function CurriculumPage() {
 
 function IssuesPanel({ overview }: { overview: CurriculumOverview }) {
   return (
-    <section className="rounded-lg border bg-surface" aria-labelledby="curriculum-issues">
+    <section className="rounded-xl border bg-surface shadow-card" aria-labelledby="curriculum-issues">
       <h2 id="curriculum-issues" className="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold text-foreground">
-        <AlertTriangle className="size-4 text-warning-foreground dark:text-warning" aria-hidden /> Issues to review
+        <AlertTriangle className="size-4 text-warning-foreground" aria-hidden /> Issues to review
       </h2>
       <ul className="divide-y">
         {overview.issues.map((issue, i) => (
@@ -266,7 +266,7 @@ function GroupPanel({
   ];
 
   return (
-    <section className="min-w-0 rounded-lg border bg-surface" aria-labelledby={headingId}>
+    <section className="min-w-0 rounded-xl border bg-surface shadow-card" aria-labelledby={headingId}>
       <div className="flex flex-wrap items-start justify-between gap-3 border-b px-4 py-3">
         <div className="space-y-0.5">
           <h3 id={headingId} className="text-sm font-semibold text-foreground">

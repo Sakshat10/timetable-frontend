@@ -1,21 +1,25 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
-import { CalendarDays } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 
+/** Sign-in and sign-up: a calm, centred layout on a light canvas. */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex flex-1 items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md space-y-6">
-          <div className="flex items-center justify-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground" aria-hidden>
-              <CalendarDays className="size-5" />
-            </span>
-            <span className="text-lg font-semibold tracking-tight">Timetable Maker</span>
-          </div>
-          {children}
-        </div>
-      </div>
-      <footer className="px-4 pb-6 text-center text-xs text-muted-foreground">School timetable planning and daily cover management</footer>
+    <div className="relative flex min-h-screen flex-col bg-background">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-primary-soft to-transparent" />
+      <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
+        <Link href="/" className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Timetable Maker home">
+          <Logo />
+        </Link>
+        <Link href="/" className="inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" aria-hidden /> Back to home
+        </Link>
+      </header>
+      <main className="relative flex flex-1 items-start justify-center px-4 pt-6 pb-12 sm:items-center sm:pt-0">
+        <div className="w-full max-w-[440px]">{children}</div>
+      </main>
+      <footer className="relative px-4 pb-6 text-center text-xs text-muted-foreground">School timetable planning and daily cover management</footer>
     </div>
   );
 }

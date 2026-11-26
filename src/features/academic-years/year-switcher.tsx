@@ -55,7 +55,7 @@ export function YearSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="h-auto w-full justify-between px-2.5 py-1.5" aria-label={`Academic year: ${current?.name ?? "none"}. Change year`}>
+        <Button variant="outline" className="h-auto w-full justify-between px-2.5 py-1.5">
           <span className="flex min-w-0 flex-col items-start">
             <span className="text-[11px] font-normal text-muted-foreground">Academic year</span>
             <span className="flex items-center gap-2">
@@ -63,6 +63,8 @@ export function YearSwitcher() {
               {current ? <YearStatusBadge status={current.status} compact /> : null}
             </span>
           </span>
+          {/* The accessible name is the visible text plus this suffix, so voice control matches what is shown. */}
+          <span className="sr-only">, change academic year</span>
           <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
         </Button>
       </DropdownMenuTrigger>

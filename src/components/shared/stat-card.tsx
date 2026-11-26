@@ -24,13 +24,17 @@ export function StatCard({
   const body = (
     <>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        {icon ? <span className="text-muted-foreground [&_svg]:size-4" aria-hidden>{icon}</span> : null}
+        <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
+        {icon ? (
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary [&_svg]:size-4" aria-hidden>
+            {icon}
+          </span>
+        ) : null}
       </div>
       <div
         className={cn(
-          "tabular text-2xl font-semibold tracking-tight",
-          tone === "warning" && "text-warning-foreground dark:text-warning",
+          "tabular text-[1.75rem] leading-9 font-semibold tracking-tight",
+          tone === "warning" && "text-warning-foreground",
           tone === "danger" && "text-destructive",
           tone === "success" && "text-success",
         )}
@@ -41,7 +45,7 @@ export function StatCard({
       {href ? <ArrowUpRight className="absolute right-3 bottom-3 size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" aria-hidden /> : null}
     </>
   );
-  const classes = cn("group relative flex flex-col gap-1.5 rounded-lg border bg-surface p-4", href && "transition-colors hover:border-primary/40 hover:bg-accent/40", className);
+  const classes = cn("group relative flex flex-col gap-1 rounded-xl border bg-surface p-5 shadow-card", href && "transition-[border-color,box-shadow] hover:border-primary/35 hover:shadow-raised", className);
   return href ? (
     <Link href={href} className={classes}>
       {body}
@@ -53,7 +57,7 @@ export function StatCard({
 
 /** A bordered panel used for grouped content. */
 export function Panel({ children, className, padded = true }: { children: ReactNode; className?: string; padded?: boolean }) {
-  return <div className={cn("rounded-lg border bg-surface", padded && "p-4 sm:p-5", className)}>{children}</div>;
+  return <div className={cn("rounded-xl border bg-surface shadow-card", padded && "p-5 sm:p-6", className)}>{children}</div>;
 }
 
 /** Form section: a heading and description on the left, fields on the right (stacks on mobile). */

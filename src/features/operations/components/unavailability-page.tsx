@@ -125,7 +125,7 @@ export function UnavailabilityPage() {
               </div>
               <ul className="space-y-2 md:hidden" aria-label="Teacher unavailability">
                 {rows.map((u) => (
-                  <li key={u.id} className="flex items-start justify-between gap-2 rounded-lg border bg-surface p-3 text-sm">
+                  <li key={u.id} className="flex items-start justify-between gap-2 rounded-xl border bg-surface shadow-card p-3 text-sm">
                     <div className="min-w-0">
                       <p className="font-medium text-foreground">{nameOf(u)}</p>
                       <p className="text-muted-foreground">

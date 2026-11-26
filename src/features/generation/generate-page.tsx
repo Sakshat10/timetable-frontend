@@ -264,7 +264,7 @@ export function GeneratePage() {
                 Regenerating from a draft keeps that draft’s locked lessons exactly where they are and arranges everything else again. The source draft itself is not changed.
               </p>
               {sourceDraft && sourceDraft.lockedCount === 0 ? (
-                <p className="text-xs text-warning-foreground dark:text-warning">This draft has no locked lessons, so the result is the same as a fresh timetable.</p>
+                <p className="text-xs text-warning-foreground">This draft has no locked lessons, so the result is the same as a fresh timetable.</p>
               ) : null}
             </div>
           ) : null}
@@ -351,7 +351,7 @@ function RecentRuns({
       ) : !runs || runs.length === 0 ? (
         <EmptyState compact title="No timetable has been generated for this year yet" />
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-surface">
+        <div className="overflow-x-auto rounded-xl border bg-surface shadow-card">
           <Table className="text-sm">
             <TableHeader>
               <TableRow>

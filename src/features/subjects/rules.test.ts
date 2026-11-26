@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CurriculumOverview } from "@/lib/api/schemas";
 import { ApiError } from "@/lib/api/errors";
 import { conflictField, splitServerErrors } from "@/features/curriculum/form-errors";
-import { buildSubjectsPayload, codeProblem, gradeCounts, normaliseSubjectCode, rowErrorsFromPaths, subjectFormSchema, subjectUsage, validateSubjectsPayload } from "./rules";
+import { buildSubjectsPayload, codeProblem, gradeCounts, normaliseSubjectCode, rowErrorsFromPaths, subjectFormSchema, suggestSubjectCode, subjectUsage, validateSubjectsPayload } from "./rules";
 
 describe("subject codes", () => {
   it("are trimmed and upper-cased like the backend", () => {
@@ -104,5 +104,32 @@ describe("usage in the selected year", () => {
     ]);
     expect(subjectUsage(overview, "missing")).toEqual([]);
     expect(gradeCounts(overview).get("eng")).toBe(2);
+  });
+});
+
+describe("suggestSubjectCode", () => {
+  it("uses the first three characters of a single word, in capitals", () => {
+    expect(suggestSubjectCode("hindi")).toBe("HIN");
+    expect(suggestSubjectCode("maths")).toBe("MAT");
+    expect(suggestSubjectCode("  library ")).toBe("LIB");
+    expect(suggestSubjectCode("SST")).toBe("SST");
+    expect(suggestSubjectCode("PE")).toBe("PE");
+  });
+  it("uses initials for several words, ignoring punctuation", () => {
+    expect(suggestSubjectCode("Computer Science")).toBe("CS");
+    expect(suggestSubjectCode("physical education")).toBe("PE");
+    expect(suggestSubjectCode("Arts & Crafts")).toBe("AC");
+  });
+  it("adds a number when the code is already taken", () => {
+    expect(suggestSubjectCode("Maths", new Set(["MAT"]))).toBe("MAT2");
+    expect(suggestSubjectCode("Material Science", new Set(["MS", "MS2"]))).toBe("MS3");
+  });
+  it("returns an empty code when the name has no letters or digits, and always a valid code otherwise", () => {
+    expect(suggestSubjectCode("")).toBe("");
+    expect(suggestSubjectCode(" - ")).toBe("");
+    for (const name of ["hindi", "Computer Science", "Ünïcode Art", "2nd Language"]) {
+      const code = suggestSubjectCode(name);
+      if (code) expect(codeProblem(code)).toBeNull();
+    }
   });
 });

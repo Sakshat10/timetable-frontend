@@ -157,7 +157,7 @@ export function DashboardPage() {
           <CardShell
             title="Timetable"
             action={
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="sm" className="-mr-2 text-primary hover:bg-primary-soft hover:text-primary-hover">
                 <Link href={`${basePath}/timetables`}>All timetables</Link>
               </Button>
             }
@@ -245,7 +245,7 @@ export function DashboardPage() {
           <CardShell
             title="Today’s cover"
             action={
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="sm" className="-mr-2 text-primary hover:bg-primary-soft hover:text-primary-hover">
                 <Link href="/operations">Daily cover</Link>
               </Button>
             }
@@ -266,7 +266,7 @@ export function DashboardPage() {
                   <p className="text-xs text-muted-foreground">lessons need cover</p>
                 </div>
                 <div>
-                  <p className={`text-2xl font-semibold tabular ${openCovers ? "text-warning-foreground dark:text-warning" : ""}`}>{openCovers}</p>
+                  <p className={`text-2xl font-semibold tabular ${openCovers ? "text-warning-foreground" : ""}`}>{openCovers}</p>
                   <p className="text-xs text-muted-foreground">without a substitute</p>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
@@ -23,6 +23,7 @@ import {
   normaliseSubjectCode,
   rowErrorsFromPaths,
   subjectFormSchema,
+  suggestSubjectCode,
   validateSubjectsPayload,
   type SubjectFormInput,
   type SubjectFormValues,
@@ -31,21 +32,61 @@ import {
 
 type Invalidate = () => Promise<void>;
 
-export function SubjectDialog({ open, onOpenChange, subject, invalidate }: { open: boolean; onOpenChange: (open: boolean) => void; subject?: Subject; invalidate: Invalidate }) {
+export function SubjectDialog({
+  open,
+  onOpenChange,
+  subject,
+  invalidate,
+  existingCodes = [],
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  subject?: Subject;
+  invalidate: Invalidate;
+  /** Codes of the school's subjects, so a suggested code never clashes with them. */
+  existingCodes?: readonly string[];
+}) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">{open ? <SubjectForm subject={subject} invalidate={invalidate} close={() => onOpenChange(false)} /> : null}</DialogContent>
+      <DialogContent className="sm:max-w-md">
+        {open ? <SubjectForm subject={subject} invalidate={invalidate} close={() => onOpenChange(false)} existingCodes={existingCodes} /> : null}
+      </DialogContent>
     </Dialog>
   );
 }
 
-function SubjectForm({ subject, invalidate, close }: { subject?: Subject; invalidate: Invalidate; close: () => void }) {
+function SubjectForm({
+  subject,
+  invalidate,
+  close,
+  existingCodes,
+}: {
+  subject?: Subject;
+  invalidate: Invalidate;
+  close: () => void;
+  existingCodes: readonly string[];
+}) {
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<SubjectFormInput, unknown, SubjectFormValues>({
     resolver: zodResolver(subjectFormSchema),
     defaultValues: { name: subject?.name ?? "", code: subject?.code ?? "" },
   });
   const codePreview = normaliseSubjectCode(useWatch({ control: form.control, name: "code" }) ?? "");
+
+  // New subjects: the code follows the name until the administrator types a code of their own (editing never
+  // changes an existing code by itself).
+  const name = useWatch({ control: form.control, name: "name" });
+  const lastAutoCode = useRef("");
+  const takenKey = existingCodes.map(normaliseSubjectCode).join("|"); // stable dependency (arrays change identity)
+  useEffect(() => {
+    if (subject) return;
+    const current = form.getValues("code") ?? "";
+    if (current.trim() !== "" && current !== lastAutoCode.current) return;
+    const code = suggestSubjectCode(name ?? "", new Set(takenKey ? takenKey.split("|") : []));
+    if (code === current) return;
+    lastAutoCode.current = code;
+    form.setValue("code", code, { shouldValidate: form.formState.isSubmitted, shouldDirty: true });
+  }, [name, subject, takenKey, form]);
 
   async function onSubmit(values: SubjectFormValues) {
     setFormError(null);
@@ -107,26 +148,68 @@ function SubjectForm({ subject, invalidate, close }: { subject?: Subject; invali
 let seq = 0;
 const newRow = (): SubjectRow => ({ key: `subject-row-${++seq}`, name: "", code: "" });
 
-export function BulkSubjectsDialog({ open, onOpenChange, invalidate }: { open: boolean; onOpenChange: (open: boolean) => void; invalidate: Invalidate }) {
+export function BulkSubjectsDialog({
+  open,
+  onOpenChange,
+  invalidate,
+  existingCodes = [],
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  invalidate: Invalidate;
+  /** Codes of the school's subjects, so suggested codes never clash with them. */
+  existingCodes?: readonly string[];
+}) {
   const [pending, setPending] = useState(false);
   return (
     <Dialog open={open} onOpenChange={(next) => (!pending ? onOpenChange(next) : undefined)}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
-        {open ? <BulkForm invalidate={invalidate} close={() => onOpenChange(false)} pending={pending} setPending={setPending} /> : null}
+        {open ? <BulkForm invalidate={invalidate} close={() => onOpenChange(false)} pending={pending} setPending={setPending} existingCodes={existingCodes} /> : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-function BulkForm({ invalidate, close, pending, setPending }: { invalidate: Invalidate; close: () => void; pending: boolean; setPending: (p: boolean) => void }) {
+function BulkForm({
+  invalidate,
+  close,
+  pending,
+  setPending,
+  existingCodes,
+}: {
+  invalidate: Invalidate;
+  close: () => void;
+  pending: boolean;
+  setPending: (p: boolean) => void;
+  existingCodes: readonly string[];
+}) {
   const [rows, setRows] = useState<SubjectRow[]>(() => [newRow(), newRow(), newRow()]);
   const [rowErrors, setRowErrors] = useState<Record<string, Partial<Record<"name" | "code", string>>>>({});
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const filled = buildSubjectsPayload(rows).subjects.length;
 
-  const edit = (key: string, field: "name" | "code", value: string) => {
-    setRows((c) => c.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
+  // The code each row was last given automatically. A row whose code is empty or still equals it follows its name;
+  // once the administrator types a different code, that code is kept.
+  const [autoCodes, setAutoCodes] = useState<Record<string, string>>({});
+
+  const clearError = (key: string, field: "name" | "code") =>
     setRowErrors((c) => (c[key]?.[field] ? { ...c, [key]: { ...c[key], [field]: undefined } } : c));
+
+  const edit = (key: string, field: "name" | "code", value: string) => {
+    const row = rows.find((r) => r.key === key);
+    if (field === "name" && row && (row.code.trim() === "" || row.code === autoCodes[key])) {
+      const taken = new Set([
+        ...existingCodes.map(normaliseSubjectCode),
+        ...rows.filter((r) => r.key !== key).map((r) => normaliseSubjectCode(r.code)).filter(Boolean),
+      ]);
+      const code = suggestSubjectCode(value, taken);
+      setRows((c) => c.map((r) => (r.key === key ? { ...r, name: value, code } : r)));
+      setAutoCodes((c) => ({ ...c, [key]: code }));
+      clearError(key, "code");
+    } else {
+      setRows((c) => c.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
+    }
+    clearError(key, field);
   };
 
   async function submit(event: React.FormEvent) {
@@ -171,7 +254,8 @@ function BulkForm({ invalidate, close, pending, setPending }: { invalidate: Inva
       <DialogHeader>
         <DialogTitle>Add several subjects</DialogTitle>
         <DialogDescription>
-          All rows are added together, or none are. Empty rows are ignored. Up to {MAX_BULK_SUBJECTS} at once. {CODE_HINT}
+          All rows are added together, or none are. Empty rows are ignored. Up to {MAX_BULK_SUBJECTS} at once. Codes are filled in from the
+          names; change any you like. {CODE_HINT}
         </DialogDescription>
       </DialogHeader>
       <ol className="grid gap-3">

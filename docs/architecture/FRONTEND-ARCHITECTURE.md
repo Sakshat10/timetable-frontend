@@ -26,7 +26,7 @@
 | Concern | Choice | Reason |
 |---|---|---|
 | Framework | Next.js (App Router, current stable 16.x at scaffold time), React 19, TypeScript `strict` | Decided |
-| Styling and components | Tailwind CSS (current stable), shadcn/ui (copied components, Radix primitives) | Decided. One design-token set in CSS variables, light and dark. |
+| Styling and components | Tailwind CSS (current stable), shadcn/ui (copied components, Radix primitives) | Decided. One light-only design-token set in CSS variables (`src/app/globals.css`); the OS dark preference is deliberately ignored. |
 | Server state | TanStack Query v5 | Caching, polling (generation), mutations, invalidation, background-refetch-safe UI |
 | Forms | react-hook-form + Zod (`@hookform/resolvers`) | What the shadcn `Form` pattern uses. The Zod rules mirror the backend's for instant feedback; the server stays authoritative. |
 | Tables | `@tanstack/react-table` | Client-side sort and filter on full lists (the backend does not paginate them) |
@@ -297,3 +297,13 @@ The real suite never touches port 4000, `.env`, Neon or any non-disposable datab
 - CSRF relies on `SameSite` (Strict in production) plus JSON-only writes. The frontend adds no state-changing GET routes. Test T6.4 verifies a cross-site POST carries no session.
 - The setup token is kept in component memory only and cleared after registration.
 - Logging: no session tokens, passwords or setup tokens in client logs or error reports.
+
+## Addendum: UI redesign and public landing page (2026-11-24)
+
+- **Routing.** `/` is public (`src/app/page.tsx`). With a session cookie it calls `GET /api/admin/me` server-side. A valid session redirects to the remembered, ACTIVE or newest DRAFT year's dashboard (or to `/setup/start` when there is none). With no cookie, or a stale one, the landing page is shown (`src/features/landing/`). `src/proxy.ts` treats `/` as public, and every other route keeps its session redirect.
+- **Theme.** Light only. `next-themes`, the `.dark` tokens and the Appearance menu were removed. The `dark` variant is pinned to a class that is never applied, so a `dark:` utility can never follow the OS preference. `e2e/landing.spec.ts` checks that pages stay light under `prefers-color-scheme: dark`.
+- **Design system.**
+  - **Tokens** (`globals.css`): canvas `--background`, white `--surface`, `--surface-subtle`, blue `--primary`/`--primary-hover`/`--primary-soft`, `--border`/`--border-strong`, and the shadow scale `shadow-xs` / `shadow-card` / `shadow-raised` / `shadow-overlay`.
+  - **Primitives:** heights are 36px by default and 32px for `sm`. Dialogs use `rounded-2xl` with `shadow-overlay`.
+  - **Shared components:** `PageHeader`, `Panel`, `StatCard`, the state components and `DataTable` carry the card styling. The brand mark is `src/components/brand/logo.tsx`.
+- **Landing copy** describes only implemented capabilities. It has no metrics, testimonials, logos, prices or contact details, and the hero preview is an illustration labelled as sample data.

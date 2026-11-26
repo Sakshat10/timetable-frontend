@@ -59,7 +59,7 @@ function GridTable({ view, children }: { view: TimetableView; children: (slot: S
   const periods = [...view.grid.periods].sort((a, b) => a.periodNumber - b.periodNumber);
   const breaks = new Set(breakAfterPeriods(periods));
   return (
-    <div className="overflow-x-auto rounded-lg border bg-surface" data-testid="timetable-grid">
+    <div className="overflow-x-auto rounded-xl border bg-surface shadow-card" data-testid="timetable-grid">
       <table className="w-full min-w-[720px] table-fixed border-collapse text-sm">
         <caption className="sr-only">Timetable: days across, periods down</caption>
         <thead>
@@ -158,7 +158,7 @@ function LessonCard({
 }
 
 function Free() {
-  return <span className="flex h-full min-h-16 items-center justify-center text-xs text-muted-foreground/70">Free</span>;
+  return <span className="flex h-full min-h-16 items-center justify-center text-xs text-muted-foreground">Free</span>;
 }
 
 function StaticGrid({ view, kind, mode, pendingIds, onToggleLock }: GridProps) {
@@ -402,7 +402,7 @@ function DayList({ view, kind }: { view: TimetableView; kind: "section" | "teach
   return (
     <div className="flex flex-col gap-4" data-testid="timetable-day-list">
       {days.map((d) => (
-        <section key={d.dayOfWeek} aria-labelledby={`day-${d.dayOfWeek}`} className="rounded-lg border bg-surface">
+        <section key={d.dayOfWeek} aria-labelledby={`day-${d.dayOfWeek}`} className="rounded-xl border bg-surface shadow-card">
           <h3 id={`day-${d.dayOfWeek}`} className="border-b px-3 py-2 text-sm font-semibold">
             {DAY_LABEL[d.dayOfWeek as DayOfWeek]}
           </h3>

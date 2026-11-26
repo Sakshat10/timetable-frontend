@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { applyServerErrors, FormAlert, SelectField, TextField } from "@/components/shared/form-fields";
 import { PendingButton } from "@/components/shared/confirm-dialog";
@@ -122,9 +122,9 @@ export function SignupFlow() {
 
   if (step === "admin" && school) {
     return (
-      <Card>
+      <Card className="gap-6 rounded-2xl py-8 shadow-raised [--card-spacing:--spacing(6)] sm:[--card-spacing:--spacing(8)]">
         <CardHeader>
-          <CardTitle className="text-lg">Create your administrator account</CardTitle>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Create your administrator account</h1>
           <CardDescription>{school.name} has been created. Keep your School ID: you need it to sign in.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -170,9 +170,9 @@ export function SignupFlow() {
   }
 
   return (
-    <Card>
+    <Card className="gap-6 rounded-2xl py-8 shadow-raised [--card-spacing:--spacing(6)] sm:[--card-spacing:--spacing(8)]">
       <CardHeader>
-        <CardTitle className="text-lg">Set up your school</CardTitle>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Set up your school</h1>
         <CardDescription>Create the school, then its first administrator account.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -214,7 +214,7 @@ function ScheduleEditor({ config }: { config: ScheduleConfig | null }) {
         </div>
 
         {config && capabilities.canEditSetup ? (
-          <div role="note" className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning-muted px-3 py-2 text-sm text-warning-foreground dark:text-warning">
+          <div role="note" className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-muted px-3 py-2 text-sm text-warning-foreground">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
             Changing the schedule makes existing timetable drafts for {year.name} out of date. Generate again afterwards.
           </div>
@@ -302,7 +302,7 @@ function WorkingDaysField({ control, disabled }: { control: Control<FormValues>;
                     key={day}
                     type="button"
                     aria-pressed={on}
-                    aria-label={DAY_LABEL[day]}
+                    aria-label={`${DAY_SHORT[day]} (${DAY_LABEL[day]})`}
                     disabled={disabled}
                     onClick={() => field.onChange(orderDays(on ? field.value.filter((d) => d !== day) : [...field.value, day]))}
                     className={cn(

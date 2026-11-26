@@ -37,12 +37,21 @@ test("setup guide derives progress from saved data and links to each step", asyn
   }
   await expect(page.getByText(/does not guarantee the solver will find a timetable/)).toBeVisible();
   await page.getByRole("link", { name: /Manage classes|Add classes/ }).click();
-  await page.waitForURL(new RegExp(`/years/${future().id}/classes$`));
+  await page.waitForURL(new RegExp(`/years/${future().id}/classes\\?from=setup$`));
+  await page.getByRole("link", { name: "Back to setup guide" }).click();
+  await page.waitForURL(new RegExp(`/years/${future().id}/setup$`));
+  await expect(page.getByRole("heading", { name: "Setup guide" })).toBeVisible();
+});
+
+test("the back-to-setup link only appears when arriving from the setup guide", async ({ page }) => {
+  await page.goto(`/years/${future().id}/classes`);
+  await expect(page.getByRole("heading", { name: "Classes" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to setup guide" })).toHaveCount(0);
 });
 
 test("the year switcher keeps the current page and the year survives a refresh", async ({ page }) => {
   await page.goto(`/years/${current().id}/setup`);
-  await page.getByRole("button", { name: /Academic year: .* Change year/ }).click();
+  await page.getByRole("button", { name: /^Academic year.*change academic year$/ }).click();
   await page.getByRole("menuitem", { name: new RegExp(future().name) }).click();
   await page.waitForURL(new RegExp(`/years/${future().id}/setup$`));
   await page.reload();

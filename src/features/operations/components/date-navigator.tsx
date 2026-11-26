@@ -13,7 +13,7 @@ export function DateNavigator({ date, today, onChange }: { date: string; today: 
   const inputId = useId();
   const relation = relationToToday(date, today);
   return (
-    <div className="flex flex-col gap-3 rounded-lg border bg-surface p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-3 rounded-xl border bg-surface shadow-card p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-base font-semibold text-foreground" aria-live="polite">

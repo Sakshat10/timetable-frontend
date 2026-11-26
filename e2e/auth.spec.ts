@@ -127,10 +127,15 @@ test.describe("with a real session", () => {
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
     expireSession(token);
     // Several parallel client queries now get 401: exactly one redirect and one notice.
-    // Navigate somewhere whose data is not cached, so the client actually calls the API and gets 401s.
-    await page.getByRole("link", { name: "Settings" }).first().click();
-    await page.waitForURL(/\/login\?reason=expired/);
-    await expect(page.getByText("Your session ended", { exact: true })).toHaveCount(1);
+    // Navigate somewhere whose data is not cached, so the client actually calls the API and gets 401s. A background
+    // refetch may hit the 401 first and redirect on its own (the behaviour under test), detaching the link mid-click,
+    // so the click is best-effort and the redirect is what is asserted.
+    await Promise.all([
+      page.waitForURL(/\/login\?reason=expired/),
+      page.getByRole("link", { name: "Settings" }).first().click({ timeout: 5_000 }).catch(() => undefined),
+    ]);
+    // One notice: the login page's expired-session banner (the redirect is a full-page navigation).
+    await expect(page.getByText(/Your session ended/)).toHaveCount(1);
     expect(new URL(page.url()).searchParams.get("next")).toMatch(/^\/years\//);
     expect(sessionRow(token)).toBeNull(); // the backend deleted the expired session
   });

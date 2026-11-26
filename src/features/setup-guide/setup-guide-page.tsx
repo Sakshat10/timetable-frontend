@@ -8,6 +8,7 @@ import { PageBody, PageHeader, Section } from "@/components/shared/page-header";
 import { Panel } from "@/components/shared/stat-card";
 import { ReadOnlyNotice, StaleDataNotice } from "@/components/shared/states";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { withSetupReturn } from "@/components/shared/setup-return-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useYear } from "@/features/academic-years/year-context";
 import { cn } from "@/lib/utils";
@@ -60,7 +61,7 @@ export function SetupGuidePage() {
         </div>
         {next && !data.isPending ? (
           <Button asChild>
-            <Link href={`${basePath}${next.href}`}>
+            <Link href={withSetupReturn(`${basePath}${next.href}`)}>
               Next: {next.title} <ArrowRight />
             </Link>
           </Button>
@@ -68,7 +69,7 @@ export function SetupGuidePage() {
       </Panel>
 
       <Section title="Steps">
-        <ol className="overflow-hidden rounded-lg border bg-surface">
+        <ol className="overflow-hidden rounded-xl border bg-surface shadow-card">
           {steps.map((step, index) => (
             <li key={step.id} className={cn("flex flex-col gap-3 border-b p-4 last:border-b-0 sm:flex-row sm:items-center", step.id === next?.id && "bg-accent/30")}>
               <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -89,7 +90,7 @@ export function SetupGuidePage() {
                 </div>
               </div>
               <Button asChild variant={step.id === next?.id ? "default" : "outline"} size="sm" className="self-start sm:self-center">
-                <Link href={`${basePath}${step.href}`}>{step.cta}</Link>
+                <Link href={withSetupReturn(`${basePath}${step.href}`)}>{step.cta}</Link>
               </Button>
             </li>
           ))}
@@ -101,7 +102,7 @@ export function SetupGuidePage() {
         description="READY means the pre-generation checks passed. It does not guarantee the solver will find a timetable."
         actions={
           <Button asChild variant="outline" size="sm">
-            <Link href={`${basePath}/generate`}>Open full report</Link>
+            <Link href={withSetupReturn(`${basePath}/generate`)}>Open full report</Link>
           </Button>
         }
       >

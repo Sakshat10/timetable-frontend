@@ -149,7 +149,7 @@ function AbsenceDetail({ absenceId }: { absenceId: string }) {
       />
       {absence.isRefetchError ? <StaleDataNotice onRetry={() => void absence.refetch()} /> : null}
       {retryRun ? (
-        <div role="status" className="space-y-2 rounded-lg border bg-surface p-4 text-sm">
+        <div role="status" className="space-y-2 rounded-xl border bg-surface shadow-card p-4 text-sm">
           <p className="font-medium text-foreground">Automatic assignment ran again.</p>
           <AutoRunFacts run={retryRun} />
         </div>
