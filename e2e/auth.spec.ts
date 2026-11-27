@@ -46,6 +46,39 @@ test("T1.2 invalid credentials: generic message, no cookie", async ({ page, cont
   await expect(page.getByText(/forgot password|reset password|school code/i)).toHaveCount(0);
 });
 
+test("T1.5 a `next` that browsers turn into another host is ignored (tab, newline, backslash)", async ({ page }) => {
+  // The login answer is simulated (no session, no rate-limit use): only the client-side redirect is under test.
+  const external: string[] = [];
+  await page.route(
+    (url) => url.hostname === "evil.example",
+    (route) => {
+      external.push(route.request().url());
+      return route.abort();
+    },
+  );
+  await page.route(
+    (url) => url.pathname === "/api/admin/login",
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, message: "Login successful", data: { id: "00000000-0000-4000-8000-000000000001", schoolId: "00000000-0000-4000-8000-000000000002", name: "A", email: "a@example.com" } }),
+      }),
+  );
+  // The form pre-fills the last School ID after hydration; start empty and let hydration finish before typing.
+  await page.addInitScript(() => localStorage.removeItem("tt.lastSchoolId"));
+  for (const next of ["/\t/evil.example/steal", "/\n/evil.example/steal", "/\\evil.example/steal"]) {
+    await page.goto(`/login?next=${encodeURIComponent(next)}`, { waitUntil: "networkidle" });
+    await page.getByLabel("School ID").fill("00000000-0000-4000-8000-000000000002");
+    await page.getByLabel("Email").fill("a@example.com");
+    await page.getByLabel("Password").fill("x");
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL((url) => url.pathname !== "/login" || url.hostname === "evil.example");
+    expect(new URL(page.url()).hostname).toBe("localhost");
+  }
+  expect(external).toEqual([]);
+});
+
 test.describe("with a real session", () => {
   let context: BrowserContext;
   let page: Page;

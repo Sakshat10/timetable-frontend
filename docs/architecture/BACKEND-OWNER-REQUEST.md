@@ -52,6 +52,24 @@ Related: the limiter is in memory and per process, so multiple backend instances
 
 **Frontend mitigation, regardless of the fix:** the frontend never displays the body of a 5xx response.
 
+### 2a. Findings from the 2026-11-27 security audit (code changes)
+
+The details, evidence and remediations are in `SECURITY_AUDIT_REPORT.md` at the frontend repository root. In priority order:
+
+- **B-1 (MEDIUM).** The generation queue cap is global (`timetable-generation.run-repository.ts:109-110`). One school can keep the 10 slots full for every school. Add a per-school active-run cap.
+- **B-3 (MEDIUM).** `npm audit` reports `zod` (high, runtime), `fast-uri` and `fastify`, all fixable without breaking changes (`npm audit fix`).
+- **B-2 (MEDIUM).** Login timing reveals existing admin emails: unknown emails return in about 2 ms, known emails in 50–230 ms (`admin.service.ts:89-92`). Verify against a dummy hash when no admin is found.
+- **B-5 (LOW).** Solver stderr is returned in `failure.message` (`timetable-generation.solver-client.ts:258-266`).
+- **B-6 (LOW).** The cookie is `Secure`/`Strict` only when `NODE_ENV === "production"`, while startup checks treat an unset `NODE_ENV` as production (`admin.controller.ts:75-80`).
+- **B-7 (LOW).** `/docs` is always registered, and `HOST` defaults to `0.0.0.0`.
+- **B-8 to B-12 (LOW).**
+  - DRAFT-only checks outside the year lock.
+  - Academic-year lifecycle not enforced: several ACTIVE years make cover requests silently disappear.
+  - Stream-name uniqueness race.
+  - No limits on expensive authenticated routes.
+  - Per-IP-only login limiting.
+  - The uncommitted change raising the school-creation limit to 3 per day.
+
 ## Deferred (no action needed now)
 
 ### 3. Login by school code

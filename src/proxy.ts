@@ -55,6 +55,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Runs on pages and on /api (for the same-origin guard); never on static assets or Next.js internals.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)"],
+  // Runs on every /api request (the same-origin guard must not be skippable: the static-asset exclusion below
+  // would otherwise let "/api/…/x.png" through unguarded) and on pages; never on static assets or Next.js internals.
+  matcher: ["/api/:path*", "/((?!_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)"],
 };
