@@ -118,6 +118,17 @@ test("[real] other cross-site state-changing requests are blocked before reachin
   expect(absences.data).toEqual([]);
 });
 
+test("[real] the same-origin guard also covers /api paths that look like static files", async () => {
+  // The proxy skips static assets by extension; /api must never be skipped, or "/api/…/x.png" would bypass the guard.
+  const api = await request.newContext({ extraHTTPHeaders: { "Sec-Fetch-Site": "cross-site", Origin: "https://evil.example" } });
+  for (const path of ["/api/admin/logout.png", "/api/teacher-unavailability/x.svg", "/api/subjects/a.woff2"]) {
+    const response = await api.post(`${APP}${path}`);
+    expect(response.status(), path).toBe(403);
+    expect(response.headers()["x-blocked-reason"], path).toBe("cross-origin");
+  }
+  await api.dispose();
+});
+
 test("[real] legitimate same-origin writes and non-browser API clients still reach the backend", async ({ page, baseURL }) => {
   // Same-origin browser write: an invalid body is refused by the BACKEND with its own 400 envelope (not the guard's 403).
   await page.goto(`/years/${seed().academicYears.future.id}/dashboard`);
